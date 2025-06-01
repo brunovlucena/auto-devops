@@ -1,0 +1,39 @@
+{
+  "name": "curly-service",
+  "version": "1.0.0",
+  "description": "CURLY service - The wild card stooge",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "prom-client": "^15.1.0",
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-node": "^0.45.1",
+    "@opentelemetry/exporter-jaeger": "^1.17.2",
+    "@opentelemetry/resources": "^1.18.1",
+    "@opentelemetry/semantic-conventions": "^1.18.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.40.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "microservice",
+    "opentelemetry",
+    "prometheus",
+    "tracing",
+    "nodejs",
+    "express",
+    "three-stooges",
+    "curly"
+  ],
+  "author": "Bruno Lucena",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

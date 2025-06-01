@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # Jaeger - Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    ports:
+      - "16686:16686"    # Jaeger UI
+      - "14268:14268"    # Jaeger collector
+      - "6831:6831/udp"  # Jaeger agent UDP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - stooges-net
+
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--enable-feature=exemplar-storage'
+    networks:
+      - stooges-net
+
+  # Grafana - Metrics Visualization
+  grafana:
+    image: grafana/grafana:10.2.2
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - stooges-net
+
+  # MOE Service (Go) - The Leader
+  moe-service:
+    build:
+      context: ./moe
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - LARRY_SERVICE_URL=http://larry-service:8081
+    depends_on:
+      - jaeger
+      - larry-service
+    networks:
+      - stooges-net
+
+  # LARRY Service (Python) - The Middle Guy
+  larry-service:
+    build:
+      context: ./larry
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+      - CURLY_SERVICE_URL=http://curly-service:8082
+    depends_on:
+      - jaeger
+      - curly-service
+    networks:
+      - stooges-net
+
+  # CURLY Service (Node.js) - The Wild Card
+  curly-service:
+    build:
+      context: ./curly
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+    depends_on:
+      - jaeger
+    networks:
+      - stooges-net
+
+networks:
+  stooges-net:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data: 

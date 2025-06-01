@@ -1,0 +1,42 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # MOE Service (Go) - The Leader
+  - job_name: 'moe-service'
+    static_configs:
+      - targets: ['moe-service:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # LARRY Service (Python) - The Middle Guy
+  - job_name: 'larry-service'
+    static_configs:
+      - targets: ['larry-service:8081']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # CURLY Service (Node.js) - The Wild Card
+  - job_name: 'curly-service'
+    static_configs:
+      - targets: ['curly-service:8082']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+# Exemplar configuration for trace-metrics correlation
+storage:
+  exemplars:
+    max_exemplars: 100000 

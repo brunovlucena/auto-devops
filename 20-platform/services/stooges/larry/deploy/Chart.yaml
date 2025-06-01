@@ -1,0 +1,22 @@
+apiVersion: v2
+name: larry-service
+description: LARRY - The Middle Guy of the Three Stooges microservices demo
+
+type: application
+
+version: 0.1.0
+appVersion: "1.0.0"
+
+maintainers:
+  - name: Bruno Lucena
+    email: bruno@lucena.cloud
+
+keywords:
+  - microservices
+  - distributed-tracing
+  - prometheus
+  - opentelemetry
+  - three-stooges
+  - python
+  - fastapi
+  - middle-guy 

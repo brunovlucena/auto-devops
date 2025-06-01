@@ -1,0 +1,84 @@
+# Default values for larry-service
+# This is a YAML-formatted file.
+
+replicaCount: 1
+
+image:
+  repository: larry-service
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8081
+  targetPort: 8081
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: larry-service.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Health check configuration
+healthCheck:
+  enabled: true
+  path: /health
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+# Environment variables
+env:
+  - name: PORT
+    value: "8081"
+  - name: JAEGER_ENDPOINT
+    value: "http://jaeger-collector:14268/api/traces"
+  - name: CURLY_SERVICE_URL
+    value: "http://curly-service:8082"
+
+# Service Monitor for Prometheus
+serviceMonitor:
+  enabled: true
+  labels: {}
+  interval: 30s
+  path: /metrics
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi 
