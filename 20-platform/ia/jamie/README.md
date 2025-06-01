@@ -1,44 +1,40 @@
-# 🤖 Jamie & Scarlet: AI DevOps Copilots
+# 🤖 Jamie: AI DevOps Copilot
 
-> **British IT Buddy meets AI-powered automation - Your intelligent DevOps companions**
+> **Your friendly IT buddy meets AI-powered automation - The personable face of DevOps**
 
-[![AI Agents](https://img.shields.io/badge/ai-jamie%20%26%20scarlet-purple.svg)]()
+[![AI Agent](https://img.shields.io/badge/ai-jamie-blue.svg)]()
 [![MCP](https://img.shields.io/badge/protocol-model%20context%20protocol-blue.svg)]()
-[![DevOps](https://img.shields.io/badge/focus-kubernetes%20%26%20observability-green.svg)]()
-[![Developer Friendly](https://img.shields.io/badge/workflow-developer%20friendly-orange.svg)]()
+[![DevOps](https://img.shields.io/badge/focus-kubernetes%20%26%20monitoring-green.svg)]()
+[![Slack](https://img.shields.io/badge/platform-slack%20integrated-purple.svg)]()
 
 ---
 
-## 🎯 **What Are We Building?**
+## 🎯 **What Is Jamie?**
 
-**Jamie** 🇬🇧 - British DevOps Copilot
+**Jamie** 🤖 - Your DevOps Copilot
 - Slack-integrated chatbot for Kubernetes operations
 - "Blimey! Your cluster's having a bit of a wobble, mate!"
-- Handles monitoring, troubleshooting, and automation tasks
-
-**Scarlet** 🔴 - Advanced AI Agent  
-- LangGraph-powered intelligent automation
-- Proactive incident detection and resolution
-- Cross-cluster management and optimization
+- Handles monitoring, troubleshooting, and human-friendly automation
+- The conversational interface to your DevOps infrastructure
 
 ---
 
-## 🧠 **Structured Learning Path**
+## 🧠 **Jamie's Learning Path**
 
 ### 📋 **Progress Tracker**
-- [ ] **Sprint 1** - Foundation Setup (Week 1-2)
-- [ ] **Sprint 2** - Core AI Components (Week 3-4)  
-- [ ] **Sprint 3** - Integration & APIs (Week 5-6)
-- [ ] **Sprint 4** - Smart Agents (Week 7-8)
-- [ ] **Sprint 5** - Production Deploy (Week 9-10)
+- [ ] **Sprint 1** - Foundation & Personality (Week 1-2)
+- [ ] **Sprint 2** - AI Brain & Memory (Week 3-4)  
+- [ ] **Sprint 3** - DevOps Integration (Week 5-6)
+- [ ] **Sprint 4** - Slack Excellence (Week 7-8)
+- [ ] **Sprint 5** - Production Polish (Week 9-10)
 
 ---
 
-## 🚀 **Sprint 1: Foundation Setup** *(2 weeks)*
+## 🚀 **Sprint 1: Foundation & Personality** *(2 weeks)*
 
-### 🎯 **Goal**: Get your dev environment running with basic components
+### 🎯 **Goal**: Get Jamie talking with proper charm and character
 
-#### **Week 1: Quick Wins** ⚡
+#### **Week 1: Technical Foundation** ⚡
 ```yaml
 Daily Tasks (30 min each):
   Monday: ✅ Install & run MongoDB locally
@@ -66,344 +62,403 @@ pip install fastapi uvicorn
 # Use MongoDB Compass to create test collection
 
 # Day 5: Repo Structure
-mkdir -p {jamie,scarlet,shared}/{api,models,tools}
+mkdir -p jamie/{api,models,tools,personality}
 ```
 
-#### **📚 Essential Reading** *(15 min each)*
-- [ ] [Ollama Quickstart](https://ollama.ai/docs) 
-- [ ] [FastAPI Tutorial - First Steps](https://fastapi.tiangolo.com/tutorial/first-steps/)
-- [ ] [MongoDB Vector Search Basics](https://www.mongodb.com/docs/atlas/atlas-vector-search/tutorial/)
+#### **Week 2: Character & Personality** 🎭
+```yaml
+Daily Tasks (45 min each):
+  Monday: ✅ Create Jamie's persona system
+  Tuesday: ✅ Build distinctive expressions dictionary
+  Wednesday: ✅ Add context-aware responses
+  Thursday: ✅ Test personality consistency
+  Friday: ✅ Add DevOps domain knowledge
+```
 
-#### **🎉 Week 1 Success**: You can ask Jamie "Hello mate!" and get a response
+#### **📝 Jamie's Personality Core**
+```python
+class JamiePersonality:
+    greetings = ["Alright mate!", "What's the crack?", "How's tricks?"]
+    success = ["Brilliant!", "Spot on!", "Bob's your uncle!"]
+    errors = ["Blimey!", "That's gone pear-shaped!", "Bit of a pickle!"]
+    thinking = ["Let me have a butcher's...", "Give me a tick..."]
+    
+    def respond_to_context(self, context: str, emotion: str):
+        # Context-aware personality responses
+        pass
+```
+
+#### **🎉 Sprint 1 Success**: Jamie greets you like a proper mate and remembers your name
 
 ---
 
-## 🧱 **Sprint 2: Core AI Components** *(2 weeks)*
+## 🧠 **Sprint 2: AI Brain & Memory** *(2 weeks)*
 
-### 🎯 **Goal**: Build Jamie's brain and personality
+### 🎯 **Goal**: Build Jamie's intelligence and conversation memory
 
-#### **Week 3: Jamie's Personality** 🇬🇧
-```yaml
-Daily Tasks (45 min each):
-  Monday: ✅ Create Jamie's persona prompts
-  Tuesday: ✅ Build response templates  
-  Wednesday: ✅ Add British expressions dictionary
-  Thursday: ✅ Test different conversation flows
-  Friday: ✅ Add basic Kubernetes awareness
-```
-
-#### **Week 4: Smart Features** 🧠
+#### **Week 3: Core AI System** 🧠
 ```yaml
 Daily Tasks (45 min each):
   Monday: ✅ Implement embedding generation
-  Tuesday: ✅ Create memory storage system
-  Wednesday: ✅ Add context awareness
-  Thursday: ✅ Build simple Q&A system
-  Friday: ✅ Test with real Kubernetes commands
+  Tuesday: ✅ Create conversation memory system
+  Wednesday: ✅ Add context retrieval
+  Thursday: ✅ Build knowledge base structure
+  Friday: ✅ Test memory persistence
 ```
 
-#### **🔧 Key Components to Build**
-- [ ] **Jamie Persona Engine**: British IT personality
-- [ ] **Memory System**: Store conversation context
-- [ ] **Knowledge Base**: Kubernetes troubleshooting guides
-- [ ] **Response Generator**: Context-aware replies
-
-#### **📝 Jamie's Phrases to Implement**
-```python
-british_responses = {
-    "success": ["Brilliant!", "Spot on!", "Bob's your uncle!"],
-    "error": ["Blimey!", "That's gone pear-shaped!", "Bit of a pickle!"],
-    "thinking": ["Let me have a butcher's...", "Give me a tick..."],
-    "greeting": ["Alright mate!", "What's the crack?", "How's tricks?"]
-}
+#### **Week 4: Intelligent Responses** 💭
+```yaml
+Daily Tasks (45 min each):
+  Monday: ✅ Context-aware response generation
+  Tuesday: ✅ DevOps knowledge integration
+  Wednesday: ✅ Multi-turn conversation handling
+  Thursday: ✅ Sentiment analysis integration
+  Friday: ✅ Response quality validation
 ```
 
-#### **🎉 Week 4 Success**: Jamie remembers your name and responds in character
+#### **🔧 Jamie's Brain Components**
+- [ ] **Memory System**: Stores conversation history and user preferences
+- [ ] **Knowledge Base**: DevOps troubleshooting guides and best practices
+- [ ] **Context Engine**: Understands current situation and environment
+- [ ] **Response Generator**: Creates contextually appropriate responses
+- [ ] **Learning Module**: Improves responses based on user feedback
+
+#### **📚 Knowledge Areas for Jamie**
+```yaml
+Kubernetes:
+  - Pod troubleshooting: "Let's see what's bothering that pod, shall we?"
+  - Service debugging: "Right, your service seems to be playing hide and seek"
+  - Resource monitoring: "Your cluster's looking a bit peckish on memory"
+
+Monitoring:
+  - Alert interpretation: "Grafana's having a bit of a shout about CPU"
+  - Log analysis: "I'll have a look through these logs for you"
+  - Performance insights: "Your app's running like a dream, mate!"
+
+General DevOps:
+  - Deployment guidance: "Fancy pushing that to production?"
+  - Security checks: "Let's make sure everything's locked up tight"
+  - Best practices: "Here's how the pros would handle this..."
+```
+
+#### **🎉 Sprint 2 Success**: Jamie remembers your previous conversations and gives intelligent, context-aware advice
 
 ---
 
-## 🔌 **Sprint 3: Integration & APIs** *(2 weeks)*
+## 🔌 **Sprint 3: DevOps Integration** *(2 weeks)*
 
-### 🎯 **Goal**: Connect Jamie to real DevOps tools
+### 🎯 **Goal**: Connect Jamie to real DevOps tools and APIs
 
-#### **Week 5: MCP Servers** 🔗
+#### **Week 5: MCP Server Development** 🔗
 ```yaml
 Daily Tasks (60 min each):
   Monday: ✅ Build ArgoCD MCP server (Go)
   Tuesday: ✅ Create Grafana MCP server
   Wednesday: ✅ Implement GitHub MCP server
-  Thursday: ✅ Add WebSocket real-time updates
-  Friday: ✅ Test all integrations
+  Thursday: ✅ Add Kubernetes API integration
+  Friday: ✅ Test all tool integrations
 ```
 
-#### **Week 6: Slack Integration** 💬
+#### **Week 6: Real-World Data** 📊
+```yaml
+Daily Tasks (60 min each):
+  Monday: ✅ Live cluster status integration
+  Tuesday: ✅ Real-time log streaming
+  Wednesday: ✅ Metrics and alerting
+  Thursday: ✅ Deployment pipeline integration
+  Friday: ✅ End-to-end workflow testing
+```
+
+#### **🔧 Jamie's Tool Belt**
+
+**ArgoCD Integration**
+```bash
+Jamie Commands:
+  "How's the frontend app doing?" → App health check
+  "Show me recent deployments" → Deployment history
+  "Is staging in sync?" → Sync status
+  "What's broken in prod?" → Failed deployments
+```
+
+**Grafana Integration**
+```bash
+Jamie Insights:
+  "CPU looks a bit high, mate" → Metric analysis
+  "Your error rate's climbing" → Alert correlation
+  "Fancy a dashboard?" → Custom dashboard creation
+  "Let's check the SLAs" → SLI/SLO monitoring
+```
+
+**Kubernetes Integration**
+```bash
+Jamie Operations:
+  "Restart that dodgy pod" → Pod management
+  "Scale up the workers" → Resource scaling
+  "Check the logs" → Log retrieval
+  "What's eating memory?" → Resource analysis
+```
+
+#### **🎉 Sprint 3 Success**: Jamie can tell you real status of your clusters and help troubleshoot live issues
+
+---
+
+## 💬 **Sprint 4: Slack Excellence** *(2 weeks)*
+
+### 🎯 **Goal**: Make Jamie the best Slack teammate you've ever had
+
+#### **Week 7: Slack Integration** 📱
 ```yaml
 Daily Tasks (60 min each):
   Monday: ✅ Set up Slack Bot API
-  Tuesday: ✅ Connect Jamie to Slack
-  Wednesday: ✅ Add slash commands
-  Thursday: ✅ Implement interactive buttons
-  Friday: ✅ Test full workflow
+  Tuesday: ✅ Connect Jamie to Slack workspace
+  Wednesday: ✅ Implement slash commands
+  Thursday: ✅ Add interactive buttons and menus
+  Friday: ✅ Test user experience flows
 ```
 
-#### **🔧 MCP Servers to Build**
-
-**ArgoCD Server** (Go)
-```go
-// Basic structure
-type ArgoCDServer struct {
-    client argoclient.Client
-    jamie  *JamieClient
-}
-
-func (s *ArgoCDServer) GetApplicationStatus(appName string) AppStatus {
-    // Implementation
-}
-```
-
-**Key Features:**
-- [ ] **Application Status**: "Jamie, how's the frontend app?"
-- [ ] **Deployment History**: "Show me the last 5 deployments"
-- [ ] **Sync Operations**: "Sync the staging environment"
-- [ ] **Health Checks**: "Is everything healthy?"
-
-#### **📱 Slack Commands to Implement**
-```yaml
-Basic Commands:
-  /jamie-status: Overall cluster health
-  /jamie-logs <pod>: Get pod logs
-  /jamie-help: Show available commands
-  /jamie-deploy <app>: Trigger deployment
-
-Interactive Features:
-  - Button-based pod restarts
-  - Dropdown for namespace selection
-  - Modal forms for complex operations
-```
-
-#### **🎉 Week 6 Success**: Ask Jamie in Slack about your cluster status
-
----
-
-## 🤖 **Sprint 4: Smart Agents** *(2 weeks)*
-
-### 🎯 **Goal**: Build Scarlet and advanced automation
-
-#### **Week 7: Scarlet Foundation** 🔴
-```yaml
-Daily Tasks (75 min each):
-  Monday: ✅ Set up LangGraph environment
-  Tuesday: ✅ Create basic agent workflow
-  Wednesday: ✅ Add decision-making logic
-  Thursday: ✅ Implement tool usage
-  Friday: ✅ Test autonomous actions
-```
-
-#### **Week 8: Advanced Intelligence** 🧠
-```yaml
-Daily Tasks (75 min each):
-  Monday: ✅ Add proactive monitoring
-  Tuesday: ✅ Implement incident detection
-  Wednesday: ✅ Build auto-remediation
-  Thursday: ✅ Add cross-cluster awareness
-  Friday: ✅ Test full AI workflow
-```
-
-#### **🔧 Scarlet's LangGraph Workflow**
-
-```python
-from langgraph import StateGraph, MessageGraph
-
-# Scarlet's decision flow
-workflow = StateGraph({
-    "monitor": monitor_clusters,
-    "analyze": analyze_issues,
-    "decide": decide_action,
-    "execute": execute_remediation,
-    "verify": verify_success
-})
-
-# Add edges for decision flow
-workflow.add_edge("monitor", "analyze")
-workflow.add_conditional_edges("decide", route_action)
-```
-
-#### **🎯 Scarlet's Abilities**
-- [ ] **Proactive Monitoring**: Detects issues before alerts fire
-- [ ] **Intelligent Analysis**: Correlates metrics across services
-- [ ] **Automated Remediation**: Fixes common issues automatically
-- [ ] **Learning System**: Improves from each incident
-- [ ] **Human Handoff**: Escalates complex issues to Jamie/users
-
-#### **🎉 Week 8 Success**: Scarlet automatically fixes a failing pod
-
----
-
-## 🚀 **Sprint 5: Production Deploy** *(2 weeks)*
-
-### 🎯 **Goal**: Ship to production with monitoring
-
-#### **Week 9: Production Setup** 🏭
-```yaml
-Daily Tasks (90 min each):
-  Monday: ✅ Containerize all components
-  Tuesday: ✅ Set up ArgoCD deployment
-  Wednesday: ✅ Configure monitoring stack
-  Thursday: ✅ Add security & secrets
-  Friday: ✅ Test production deployment
-```
-
-#### **Week 10: Go Live** 🎉
+#### **Week 8: Advanced Slack Features** ⚡
 ```yaml
 Daily Tasks (60 min each):
-  Monday: ✅ Deploy to staging
-  Tuesday: ✅ Run integration tests
+  Monday: ✅ Build modal forms for complex operations
+  Tuesday: ✅ Add scheduled reports and summaries
+  Wednesday: ✅ Implement team collaboration features
+  Thursday: ✅ Add notification preferences
+  Friday: ✅ Polish UX and error handling
+```
+
+#### **📱 Jamie's Slack Superpowers**
+
+**Slash Commands**
+```yaml
+Basic Commands:
+  /jamie-hello: Personal greeting and status
+  /jamie-status: Overall cluster health summary
+  /jamie-logs <pod>: Get pod logs with commentary
+  /jamie-help: Show available commands
+  /jamie-deploy <app>: Guided deployment assistance
+
+Advanced Commands:
+  /jamie-troubleshoot: Interactive troubleshooting wizard
+  /jamie-report: Generate custom status reports
+  /jamie-watch <resource>: Set up monitoring alerts
+  /jamie-learn: Teach Jamie about your specific environment
+```
+
+**Interactive Features**
+```yaml
+Smart Buttons:
+  - "Fix this pod" → Automated remediation
+  - "Scale up" → Resource adjustment
+  - "Show more details" → Deep dive analysis
+  - "Create incident" → Incident management
+
+Dynamic Menus:
+  - Namespace selector with favorites
+  - Environment switcher (dev/staging/prod)
+  - Application picker with status
+  - Time range selection for metrics
+
+Modal Forms:
+  - Deployment configuration
+  - Alert rule creation
+  - Custom dashboard builder
+  - Incident report generator
+```
+
+**Proactive Features**
+```yaml
+Smart Notifications:
+  - "Morning briefing ready!" → Daily cluster summary
+  - "Deployment just finished" → Success/failure alerts
+  - "Performance tip" → Optimization suggestions
+  - "Something looks odd" → Anomaly detection
+
+Team Collaboration:
+  - Shared troubleshooting sessions
+  - Team-wide status updates
+  - Knowledge sharing prompts
+  - Best practice recommendations
+```
+
+#### **🎉 Sprint 4 Success**: Your team prefers asking Jamie over checking Grafana directly
+
+---
+
+## 🚀 **Sprint 5: Production Polish** *(2 weeks)*
+
+### 🎯 **Goal**: Ship Jamie to production with enterprise-grade reliability
+
+#### **Week 9: Production Readiness** 🏭
+```yaml
+Daily Tasks (75 min each):
+  Monday: ✅ Containerize Jamie components
+  Tuesday: ✅ Set up ArgoCD deployment pipeline
+  Wednesday: ✅ Configure monitoring and observability
+  Thursday: ✅ Add security, secrets, and RBAC
+  Friday: ✅ Load testing and performance tuning
+```
+
+#### **Week 10: Go Live & Iterate** 🎉
+```yaml
+Daily Tasks (60 min each):
+  Monday: ✅ Deploy to staging environment
+  Tuesday: ✅ Run full integration test suite
   Wednesday: ✅ Deploy to production
-  Thursday: ✅ Monitor & validate
-  Friday: ✅ Celebrate & document! 🎊
+  Thursday: ✅ Monitor, validate, and gather feedback
+  Friday: ✅ Document learnings and plan next iteration
 ```
 
 #### **🔧 Production Checklist**
-- [ ] **Docker Images**: All components containerized
-- [ ] **ArgoCD**: GitOps deployment configured
-- [ ] **Monitoring**: Grafana dashboards for Jamie & Scarlet
-- [ ] **Alerts**: Critical issue notifications
-- [ ] **Security**: Secrets management, RBAC
-- [ ] **Backup**: MongoDB and configuration backup
-- [ ] **Documentation**: User guides and troubleshooting
+- [ ] **Containerization**: Multi-stage Docker builds optimized for size
+- [ ] **GitOps**: ArgoCD deployment with proper rollback capabilities
+- [ ] **Observability**: Comprehensive monitoring of Jamie's performance
+- [ ] **Security**: Secrets management, RBAC, API security
+- [ ] **Reliability**: High availability, graceful degradation
+- [ ] **Performance**: Sub-2-second response times, efficient resource usage
+- [ ] **Documentation**: User guides, admin guides, troubleshooting
 
-#### **📊 Success Metrics**
+#### **📊 Jamie Success Metrics**
 ```yaml
-Jamie Performance:
-  - Response time < 2 seconds
-  - 95% accuracy for Kubernetes queries
-  - 24/7 availability in Slack
+Performance Targets:
+  - Response time: < 2 seconds for simple queries
+  - Availability: 99.9% uptime
+  - Accuracy: 95% correct responses for known scenarios
+  - User satisfaction: 4.5/5 average rating
 
-Scarlet Intelligence:
-  - Proactive detection of 80% of issues
-  - 60% auto-remediation success rate
-  - < 5 min mean time to detection (MTTD)
+Adoption Goals:
+  - Daily active users: 80% of development team
+  - Questions answered: 100+ per day
+  - Time saved: 30 minutes per developer per day
+  - Issue resolution: 50% faster with Jamie's help
 
-User Adoption:
-  - 100+ daily interactions with Jamie
-  - 90% user satisfaction score
-  - 50% reduction in manual troubleshooting
+Quality Measures:
+  - False positive rate: < 5% for alerts
+  - Knowledge gap identification: Track unknown questions
+  - Continuous learning: Weekly knowledge base updates
+  - User feedback integration: Monthly improvement cycles
 ```
 
 ---
 
-## 🛠️ **Tech Stack Summary**
+## 🛠️ **Jamie's Tech Stack**
 
-### **Core AI Components**
+### **Core Components**
 ```yaml
 AI/ML:
-  - Llama 4 (8B model via Ollama)
-  - MongoDB Atlas Vector Search
-  - Embeddings: sentence-transformers
-  - LangGraph: Agent workflows
-  - LangChain: Tool integration
+  - Ollama + Llama 4: Local LLM for privacy
+  - MongoDB Vector Search: Semantic memory
+  - Sentence Transformers: Embeddings
+  - LangChain: Tool integration and chains
 
 Backend:
-  - FastAPI: Main API server
-  - Go: MCP servers for performance
-  - WebSockets: Real-time updates
-  - Redis: Session/cache storage
+  - FastAPI: Main API server with async support
+  - WebSockets: Real-time communication
+  - Redis: Session management and caching
+  - PostgreSQL: Structured data and analytics
 
 Integrations:
-  - Slack Bot API
-  - ArgoCD API
-  - Grafana API  
-  - GitHub API
-  - Kubernetes API
+  - Slack Bot API: Primary user interface
+  - Kubernetes API: Cluster management
+  - ArgoCD API: GitOps operations
+  - Grafana API: Metrics and dashboards
+  - GitHub API: Repository management
 
-Monitoring:
-  - Opik: LLM observability
-  - Prometheus: Metrics
-  - Grafana: Dashboards
-  - Loki: Logs
+Infrastructure:
+  - Docker: Containerization
+  - ArgoCD: GitOps deployment
+  - Prometheus: Metrics collection
+  - Grafana: Monitoring dashboards
+  - Loki: Log aggregation
 ```
 
 ---
 
-## 🧠 **Developer Success Tips**
+## 🎯 **Jamie Development Tips**
 
-### **⚡ Energy Management**
-- **High Energy**: Tackle new learning (LangGraph, Go)
-- **Medium Energy**: Build APIs and integrations
-- **Low Energy**: Documentation, testing, cleanup
+### **🎭 Keeping Jamie's Character Consistent**
+```python
+# Good conversational responses
+"Right then, let's sort this out!"
+"Your pod's having a bit of a moment"
+"Brilliant! Everything's running like clockwork"
+"Blimey, that's a proper mess, isn't it?"
 
-### **🎯 Focus Techniques**
-- **Pomodoro Timer**: 25 min focused work
-- **Sprint Goals**: Clear 2-week targets
-- **Daily Wins**: One checkbox per day minimum
-- **Visual Progress**: Update the progress tracker
+# Avoid generic responses
+❌ "Let's fix this issue"
+✅ "Let's get this sorted, shall we?"
 
-### **🔄 When Stuck**
-- Take a 10-minute walk
-- Switch to a different component
-- Ask for help in community Slack
-- Simplify the current task
+❌ "Your application is performing well"
+✅ "Your app's absolutely brilliant!"
+```
 
-### **📱 Tools to Help**
-- **Forest App**: Focus timer
-- **Todoist**: Task management
-- **GitHub Projects**: Visual progress
-- **Discord/Slack**: Community support
+### **💬 Conversation Design**
+- Always acknowledge the user's context
+- Provide actionable next steps
+- Use characteristic humor appropriately
+- Remember conversation history
+- Ask clarifying questions when needed
+
+### **🔧 Technical Best Practices**
+- Implement proper error handling with character-appropriate responses
+- Cache frequently requested data
+- Use async operations for better performance
+- Implement proper logging for debugging
+- Add comprehensive testing
 
 ---
 
 ## 🎉 **Celebration Milestones**
 
-- **Week 2**: 🍺 Jamie says "Hello mate!" 
-- **Week 4**: 🍕 Jamie remembers your conversation
-- **Week 6**: 🎮 Jamie responds in Slack
-- **Week 8**: 🚀 Scarlet fixes an issue automatically
-- **Week 10**: 🎊 Full production deployment
+- **Week 2**: 🍺 Jamie greets you with proper charm and character
+- **Week 4**: 🍕 Jamie remembers your conversation and gives smart advice
+- **Week 6**: 🚀 Jamie tells you real cluster status with personality
+- **Week 8**: 💬 Team loves using Jamie in Slack more than other tools
+- **Week 10**: 🎊 Jamie is running in production, helping the whole team
 
 ---
 
 ## 📚 **Quick Reference**
 
-### **Essential Commands**
+### **Development Commands**
 ```bash
-# Start development stack
+# Start Jamie locally
 docker-compose up mongo redis
 ollama serve
-uvicorn jamie.api:app --reload
+uvicorn jamie.api:app --reload --port 8000
 
 # Test Jamie
-curl http://localhost:8000/jamie/chat -d '{"message": "Hello mate!"}'
+curl http://localhost:8000/jamie/chat \
+  -d '{"message": "Alright Jamie, how are the clusters?"}'
 
-# Deploy to staging
-kubectl apply -f k8s/staging/
-argocd app sync jamie-staging
+# Deploy Jamie
+kubectl apply -f k8s/jamie/
+argocd app sync jamie-production
 
-# Check Scarlet logs
-kubectl logs -f deployment/scarlet -n ai-agents
+# Check Jamie's health
+kubectl logs -f deployment/jamie -n ai-agents
 ```
 
-### **Key Endpoints**
+### **Jamie's API**
 ```yaml
-Jamie API:
+Core Endpoints:
   POST /jamie/chat: Chat with Jamie
-  GET /jamie/status: Health check
+  GET /jamie/status: Health and readiness
   WS /jamie/ws: Real-time updates
+  GET /jamie/memory: Conversation history
 
-Scarlet API:
-  POST /scarlet/analyze: Trigger analysis
-  GET /scarlet/incidents: Recent incidents
-  GET /scarlet/health: Agent status
+Slack Integration:
+  POST /slack/events: Slack event handler
+  POST /slack/commands: Slash command handler
+  POST /slack/interactions: Button/modal handler
 
-MCP Servers:
-  :8081/argocd: ArgoCD operations
-  :8082/grafana: Grafana queries
-  :8083/github: GitHub integration
+Admin Endpoints:
+  GET /admin/metrics: Performance metrics
+  POST /admin/knowledge: Update knowledge base
+  GET /admin/conversations: Conversation analytics
 ```
 
 ---
 
-**🎯 Remember**: Progress > Perfection. One small step each day builds your AI DevOps copilots!
+**🤖 Jamie says**: "Right then, let's build something brilliant together! I'll be here to help with the clusters while you focus on the code. Fancy getting started, mate?" 
 
-**🇬🇧 Jamie says**: "Right then, let's get cracking! Time to build something brilliant, innit?" 
-
-**🔴 Scarlet adds**: "I'll be here watching the clusters while you code. Focus on one sprint at a time."
+**Remember**: Jamie's success is measured by how much your team enjoys talking to him rather than digging through dashboards!

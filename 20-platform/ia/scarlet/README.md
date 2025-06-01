@@ -1,3 +1,4 @@
-Voice interface to kubernetes that sounds like auto-devops johanson
-
-auto-devops is a Trinity Remake
+**Scarlet** 🔴 - Advanced AI Agent  
+- LangGraph-powered intelligent automation
+- Proactive incident detection and resolution
+- Cross-cluster management and optimization
