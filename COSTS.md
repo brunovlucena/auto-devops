@@ -1,6 +1,6 @@
 # 💰 Auto-DevOps Home Lab Costs
 
-> **🎯 TL;DR**: Jamie & Scarlet AI agents cost **82% less** than hiring a human DevOps engineer ($3,633/month vs $16,900/month) and work 24/7 with superhuman speed!
+> **🎯 TL;DR**: Jamie & Scarlet AI agents cost **64% less** than hiring a human DevOps engineer ($3,633/month vs $10,000/month) and work 24/7 with superhuman speed!
 
 [![Hardware](https://img.shields.io/badge/hardware-home--hosted-green.svg)]()
 [![Self-Dev](https://img.shields.io/badge/development-solo--developer-blue.svg)]()
@@ -13,9 +13,9 @@
 
 ### ⚡ **30-Second Summary**
 - **Initial Investment**: $15k-30k for hardware
-- **Monthly Costs**: $3,633 (vs $16,900 for human)
-- **Payback Period**: 1.15 months
-- **Savings**: $470k over 3 years
+- **Monthly Costs**: $3,633 (vs $10,000 for human)
+- **Payback Period**: 2.4 months
+- **Savings**: $257k over 3 years
 - **Capability**: 10-15x human DevOps team performance
 
 ### 🎯 **Jump to Section**
@@ -99,8 +99,8 @@
 
 ### 🎯 **TL;DR: Ongoing Expenses**
 - **Current Total**: $3,633/month
-- **Human Engineer**: $16,900/month  
-- **Your Savings**: $13,267/month (78% less!)
+- **Human Engineer**: $10,000/month  
+- **Your Savings**: $6,367/month (64% less!)
 
 ### 📊 **Cost Breakdown**
 
@@ -149,29 +149,19 @@ Production Phase: $3,633/month
 ## 📊 **Human vs AI Comparison** {#human-vs-ai}
 
 ### 🎯 **TL;DR: The Numbers**
-- **Human**: $16,900/month, 40h/week, reactive
+- **Human**: $10,000/month, 40h/week, reactive
 - **AI**: $3,633/month, 24/7, proactive
-- **Savings**: 82% cost reduction
+- **Savings**: 64% cost reduction
 
 ### 👥 **Human DevOps Engineer**
 
 #### 💰 **Real Cost of Human**
 ```yaml
-📋 Salary & Benefits:
-  Base Salary: $10,000/month
-  Benefits (30%): $3,000/month
-  Taxes (15%): $1,500/month
+📋 Base Salary:
+  Monthly Salary: $10,000/month
+  Annual Salary: $120,000/year
   
-🛠️ Equipment & Training:
-  Hardware: $500/month
-  Software: $200/month
-  Training: $400/month
-  
-🏢 Overhead:
-  Office/Remote: $800/month
-  Management: $500/month
-  
-💰 Total: $16,900/month
+💰 Total: $10,000/month
 ```
 
 #### ⏰ **Human Limitations**
@@ -234,13 +224,13 @@ Production Phase: $3,633/month
 ## 🎯 **Future Cost Planning** {#future-planning}
 
 ### 🎯 **TL;DR: Cost Thresholds**
-- **Stay Under**: $16,900/month (human cost)
-- **Current Buffer**: $13,267/month (can grow 365%!)
-- **Recommended Target**: $8,450/month (50% of human)
+- **Stay Under**: $10,000/month (human cost)
+- **Current Buffer**: $6,367/month (can grow 175%!)
+- **Recommended Target**: $5,000/month (50% of human)
 
 ### 🚦 **Cost Zone System**
 
-#### 🟢 **Green Zone: $0-8,450/month** *(Recommended)*
+#### 🟢 **Green Zone: $0-5,000/month** *(Recommended)*
 ```yaml
 Status: ✅ Aggressive Growth Mode
 Actions:
@@ -250,13 +240,13 @@ Actions:
   ✅ Add redundancy and premium features
 
 Budget Breakdown:
-  Hardware: $2,000/month extra
-  Power: $1,500/month extra  
-  Services: $800/month extra
-  Buffer: $517/month
+  Hardware: $1,367/month extra
+  Power: $800/month extra  
+  Services: $500/month extra
+  Buffer: $333/month
 ```
 
-#### 🟡 **Yellow Zone: $8,451-12,675/month** *(Controlled)*
+#### 🟡 **Yellow Zone: $5,001-7,500/month** *(Controlled)*
 ```yaml
 Status: ⚠️ Controlled Growth Mode
 Actions:
@@ -268,7 +258,7 @@ Actions:
 Monitoring: Bi-weekly cost review
 ```
 
-#### 🔴 **Red Zone: $12,676-16,899/month** *(Caution)*
+#### 🔴 **Red Zone: $7,501-10,000/month** *(Caution)*
 ```yaml
 Status: 🔴 Cost Optimization Required
 Actions:
@@ -287,8 +277,8 @@ Monitoring: Weekly cost analysis
 |------------|--------------|------------|------|
 | **$50k** | $1,389 | 2-3 clusters | 🟢 Green |
 | **$75k** | $2,083 | 5-10 clusters | 🟢 Green |
-| **$100k** | $2,778 | 15+ clusters | 🟡 Yellow |
-| **$150k** | $4,167 | 50+ clusters | 🟡 Yellow |
+| **$100k** | $2,778 | 15+ clusters | 🟢 Green |
+| **$150k** | $4,167 | 50+ clusters | 🟢 Green |
 | **$250k** | $6,944 | 100+ clusters | 🟡 Yellow |
 
 #### ⚡ **Power Scaling**
@@ -296,7 +286,7 @@ Monitoring: Weekly cost analysis
 |-------|-------------|------|----------|------|
 | **2x** | 5,000 | $600 | Dual GPU | 🟢 Green |
 | **4x** | 10,000 | $1,200 | Multi-rack | 🟢 Green |
-| **8x** | 20,000 | $2,400 | Mini datacenter | 🟡 Yellow |
+| **8x** | 20,000 | $2,400 | Mini datacenter | 🟢 Green |
 | **16x** | 40,000 | $4,800 | Small cloud | 🟡 Yellow |
 
 ---
@@ -304,18 +294,18 @@ Monitoring: Weekly cost analysis
 ## 🏆 **ROI & Savings Analysis**
 
 ### 🎯 **TL;DR: The Numbers**
-- **Break-Even**: 1.15 months
-- **3-Year Savings**: $470,535
-- **ROI**: 4,500-6,900%
+- **Break-Even**: 2.4 months
+- **3-Year Savings**: $257,600
+- **ROI**: 709% in year 1
 
 ### 💰 **3-Year Cost Comparison**
 
 #### 👥 **Human Engineer (3 Years)**
 ```yaml
-Year 1: $184,800 (salary + benefits + equipment)
-Year 2: $189,500 (with 5% raise)
-Year 3: $198,635 (with 5% raise)
-Total: $572,935
+Year 1: $120,000 (base salary)
+Year 2: $126,000 (with 5% raise)
+Year 3: $132,300 (with 5% raise)
+Total: $378,300
 ```
 
 #### 🤖 **AI Agents (3 Years)**
@@ -328,11 +318,11 @@ Total: $102,400
 
 ### 🎉 **Your Savings**
 ```yaml
-💰 Total Savings: $470,535
-📊 Percentage: 82% cost reduction
-📅 Monthly: $13,070 savings
-⏰ Payback: 1.15 months
-🚀 ROI: 853% in year 1
+💰 Total Savings: $275,900
+📊 Percentage: 73% cost reduction
+📅 Monthly: $6,367 savings
+⏰ Payback: 2.4 months
+🚀 ROI: 549% in year 1
 ```
 
 ### 📈 **Value Beyond Money**
@@ -460,14 +450,14 @@ Remaining: $2,000 for UPS/cooling/misc
   Enterprise: $50,000+
 
 📅 Timeline:
-  Break-Even: 1.15 months
+  Break-Even: 2.4 months
   Full ROI: Year 1
-  3-Year Savings: $470k+
+  3-Year Savings: $276k+
 
 📊 Ongoing:
   Monthly Cost: $3,633
-  vs Human: $16,900
-  Savings: 82%
+  vs Human: $10,000
+  Savings: 64%
 ```
 
 ### ⚡ **Performance Quick Facts**
@@ -504,6 +494,6 @@ Remaining: $2,000 for UPS/cooling/misc
 
 ---
 
-**🚀 Ready to Start?** Pick your budget level, order the hardware, and begin building your AI-powered DevOps future. The 82% cost savings and 24/7 capability make this a no-brainer investment!
+**🚀 Ready to Start?** Pick your budget level, order the hardware, and begin building your AI-powered DevOps future. The 64% cost savings and 24/7 capability make this a no-brainer investment!
 
 **🤖 Remember**: You're not just saving money—you're building superhuman DevOps capabilities that work while you sleep! 
