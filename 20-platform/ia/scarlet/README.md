@@ -14,23 +14,7 @@
 **Scarlet** 🔴 - Your Autonomous AI Agent
 - LangGraph-powered intelligent automation engine
 - Proactive incident detection and autonomous resolution
-- Cross-cluster management and optimization
 - The silent guardian that fixes issues before you know they exist
-
-### **Scarlet vs Jamie: The Dynamic Duo**
-```yaml
-Jamie 🤖:
-  - Human-facing conversational interface
-  - Slack-based interactions and support
-  - Reactive help and guided troubleshooting
-  - "Chat with me when you need help"
-
-Scarlet 🔴:
-  - Autonomous background intelligence
-  - Proactive monitoring and remediation
-  - Self-directed problem solving
-  - "I'll fix it before you notice"
-```
 
 ---
 
