@@ -1,0 +1,391 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: loki-alerts
+  namespace: loki
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: Loki
+      rules:
+      # Loki instance availability
+      - alert: LokiInstanceDown
+        expr: up{job="loki"} == 0
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki instance is down"
+          description: "Loki instance {{ $labels.instance }} has been down for more than 5 minutes."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiinstancedown"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki high error rate
+      - alert: LokiRequestErrors
+        expr: |
+          100 * sum(rate(loki_request_duration_seconds_count{status_code=~"5.."}[1m])) by (namespace, job, route)
+          /
+          sum(rate(loki_request_duration_seconds_count[1m])) by (namespace, job, route)
+          > 10
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: Loki {{ $labels.job }} {{ $labels.route }} is experiencing {{ printf '%.2f' $value }}% errors.
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokirequesterrors"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki slow queries
+      - alert: LokiSlowQueries
+        expr: sum by (org_id) (rate(loki_request_duration_seconds_sum{route=~"loki_api_v1_query_range|loki_api_v1_query"}[30m])) / sum by (org_id) (rate(loki_request_duration_seconds_count{route=~"loki_api_v1_query_range|loki_api_v1_query"}[30m])) > 10
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki slow query performance"
+          description: "Loki queries for {{ $labels.org_id }} are taking more than 10s on average over the last 10 minutes."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokislowqueries"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki ingestion rate
+      - alert: LokiHighIngestionRate
+        expr: sum(rate(loki_distributor_bytes_received_total[30m])) by (namespace) > 10 * 1024 * 1024
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki high ingestion rate"
+          description: "Loki ingestion rate in namespace {{ $labels.namespace }} is above 30mB/s for more than 15 minutes."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokihighingestionrate"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki chunk store operation failures
+      - alert: LokiChunkOperationFailures
+        expr: rate(loki_ingester_chunk_store_index_entries_per_chunk_sum[30m]) > 0
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki chunk operation failures"
+          description: "Loki chunk store is experiencing errors on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokichunkoperationfailures"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki distributor errors
+      - alert: LokiDistributorErrors
+        expr: rate(loki_distributor_errors_total[30m]) > 0
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki distributor errors"
+          description: "Loki distributor is experiencing {{ $value | printf '%.2f' }} errors/s for more than 10 minutes."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokidistributorerrors"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki ingester memory
+      - alert: LokiIngesterMemoryUtilization
+        expr: (container_memory_working_set_bytes{container="loki-ingester"} / container_spec_memory_limit_bytes{container="loki-ingester"} * 100) > 90
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki ingester high memory utilization"
+          description: "Loki ingester {{ $labels.instance }} memory utilization is {{ $value | printf '%.2f' }}%."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiingestermemorytilization"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki streams per ingester
+      - alert: LokiIngesterStreams
+        expr: sum by(instance) (loki_ingester_memory_streams) > 100000
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki ingester high stream count"
+          description: "Loki ingester {{ $labels.instance }} is handling {{ $value }} streams, which might indicate high cardinality issues."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiingesterstreams"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki compactor errors
+      - alert: LokiCompactorFailures
+        expr: rate(loki_boltdb_shipper_compactor_operation_failures_total[30m]) > 0
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki compactor failures"
+          description: "Loki compactor is experiencing failures on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokicompactorfailures"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki request latency
+      - alert: LokiRequestLatency
+        expr: histogram_quantile(0.99, sum(rate(loki_request_duration_seconds_bucket{route!~"metrics|/frontend.Frontend/Process"}[30m])) by (le, job)) > 25
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki high request latency"
+          description: "99th percentile request latency for {{ $labels.job }} is above 1s for more than 10 minutes."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokirequestlatency"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki discarded samples
+      - alert: LokiDiscardedSamples
+        expr: sum(rate(loki_discarded_samples_total[30m])) > 1000
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki samples being discarded"
+          description: "Loki is discarding {{ $value | printf '%.2f' }} samples per second over the last 5 minutes."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokidiscardedsamples"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki pod restarting frequently
+      - alert: LokiHighRestarts
+        expr: kube_pod_container_status_restarts_total{namespace="loki", pod=~"loki-.*"} > 5
+        for: 10m
+        labels:
+          severity: critical
+          team: observability
+        annotations:
+          summary: "Loki pod restarting frequently"
+          description: "Loki pod {{ $labels.pod }} has restarted more than 5 times"
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokihighrestarts"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki pod crashing
+      - alert: LokiPodCrashing
+        expr: kube_pod_container_status_waiting_reason{namespace="loki", pod=~"loki-.*", reason="CrashLoopBackOff"} == 1
+        for: 10m
+        labels:
+          severity: critical
+          team: observability
+        annotations:
+          summary: "Loki pod in CrashLoopBackOff state"
+          description: "Loki pod {{ $labels.pod }} container {{ $labels.container }} is in CrashLoopBackOff state for more than 2 minutes"
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokipodcrashing"
+          dashboard: "https://grafana.lucena.cloud/d/loki-alerts/loki-alerts?orgId=1&from=now-5m&to=now&timezone=browser&viewPanel=panel-113"
+
+      # Loki rate store refresh failures
+      - alert: LokiRateStoreRefreshFailures
+        expr: rate(loki_rate_store_refresh_failures_total[30m]) > 0
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki rate store refresh failures"
+          description: "Loki is experiencing {{ $value | printf '%.2f' }} rate store refresh failures per second on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiratestorefailures"
+          dashboard: "https://grafana.lucena.cloud/d/loki-alerts/loki-alerts?orgId=1&from=now-5m&to=now&timezone=browser&viewPanel=panel-114"
+
+      # Loki chunks flush failures
+      - alert: LokiChunksFlushFailures
+        expr: rate(loki_ingester_chunks_flush_failures_total[30m]) > 1
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki chunks flush failures"
+          description: "Loki ingester is experiencing {{ $value | printf '%.2f' }} chunk flush failures per second on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokichunksflushfailures"
+          dashboard: "https://grafana.lucena.cloud/d/loki-alerts/loki-alerts?orgId=1&from=now-5m&to=now&timezone=browser&viewPanel=panel-115"
+
+      # Loki WAL disk full failures
+      - alert: LokiWALDiskFullFailures
+        expr: rate(loki_ingester_wal_disk_full_failures_total[30m]) > 0
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki WAL disk full failures"
+          description: "Loki ingester is experiencing WAL disk full failures on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiwaldiskfullfailures"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki canary out of order entries
+      - alert: LokiOutOfOrderEntries
+        expr: increase(loki_canary_out_of_order_entries_total[30m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+          namespace: loki
+        annotations:
+          summary: "Loki out of order entries detected"
+          description: "Loki canary has detected {{ $value }} out of order log entries in the last 10 minutes."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokioutoforderentries"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki query index cache encode errors
+      - alert: LokiIndexCacheEncodeErrors
+        expr: rate(loki_querier_index_cache_encode_errors_total[30m]) > 0
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki index cache encode errors"
+          description: "Loki querier is experiencing {{ $value | printf '%.2f' }} index cache encode errors per second on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiindexcacheencodeerrors"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki write dropped bytes
+      - alert: LokiWriteDroppedBytes
+        expr: rate(loki_write_dropped_bytes_total[30m]) > 100000
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki write dropped bytes"
+          description: "Loki is dropping {{ $value | printf '%.2f' }} bytes per second on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiwritedroppedbytes"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki write dropped entries
+      - alert: LokiWriteDroppedEntries
+        expr: rate(loki_write_dropped_entries_total[30m]) > 300
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki write dropped entries"
+          description: "Loki is dropping {{ $value | printf '%.2f' }} log entries per second on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiwritedroppedentries"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki process dropped lines
+      - alert: LokiProcessDroppedLinesIsTooHigh
+        expr: rate(loki_process_dropped_lines_total{reason!="unwanted_container"}[5m]) > 100
+        for: 10m
+        labels:
+          severity: critical
+          namespace: loki
+        annotations:
+          summary: "Loki process dropped lines"
+          description: "Loki is dropping {{ $value | printf '%.2f' }} log lines per second during processing on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiprocessdroppedlines"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Loki process dropped lines
+      - alert: LokiProcessDroppedLines
+        expr: rate(loki_process_dropped_lines_total{reason!="unwanted_container"}[5m]) > 100
+        for: 10m
+        labels:
+          severity: warning
+          namespace: loki
+        annotations:
+          summary: "Loki process dropped lines"
+          description: "Loki is dropping {{ $value | printf '%.2f' }} log lines per second during processing on instance {{ $labels.instance }}."
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiprocessdroppedlines"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+    - name: loki_slos
+      rules:
+      # Record rules for error rates
+      - record: loki:ingestion:error_ratio
+        expr: sum(rate(loki_distributor_ingestion_failures_total[30m])) / sum(rate(loki_distributor_received_samples_total[30m]))
+
+      - record: loki:query:error_ratio
+        expr: sum(rate(loki_query_frontend_queries_failed_total[30m])) / sum(rate(loki_query_frontend_queries_total[30m]))
+
+      - record: loki:storage:error_ratio
+        expr: sum(rate(loki_boltdb_shipper_operation_failures_total[30m])) / sum(rate(loki_boltdb_shipper_operation_total[30m]))
+
+      # SLO alerts for error budget burn rates
+      - alert: LokiIngestionErrorBudgetBurn
+        expr: |
+          loki:ingestion:error_ratio > 0.001 and
+          loki:ingestion:error_ratio > (0.001 * 14.4) # Burning 14.4x faster than allowed
+        for: 1h
+        labels:
+          severity: warning
+          slo: log_ingestion
+        annotations:
+          summary: "Loki log ingestion error budget burning too fast"
+          description: "Log ingestion error ratio of {{ $value | printf '%.3f' }} is burning error budget more than 14.4x faster than target SLO of 99.9% success rate"
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiingestionerrorbudget"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      - alert: LokiQueryErrorBudgetBurn
+        expr: |
+          loki:query:error_ratio > 0.01 and
+          loki:query:error_ratio > (0.01 * 14.4) # Burning 14.4x faster than allowed
+        for: 1h
+        labels:
+          severity: warning
+          slo: query_performance
+        annotations:
+          summary: "Loki query error budget burning too fast"
+          description: "Query error ratio of {{ $value | printf '%.3f' }} is burning error budget more than 14.4x faster than target SLO of 99% success rate"
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiqueryerrorbudget"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      - alert: LokiStorageErrorBudgetBurn
+        expr: |
+          loki:storage:error_ratio > 0.001 and
+          loki:storage:error_ratio > (0.001 * 14.4) # Burning 14.4x faster than allowed
+        for: 1h
+        labels:
+          severity: warning
+          slo: storage_operations
+        annotations:
+          summary: "Loki storage error budget burning too fast"
+          description: "Storage operation error ratio of {{ $value | printf '%.3f' }} is burning error budget more than 14.4x faster than target SLO of 99.9% success rate"
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokistorageerrorbudget"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      # Long window SLO violations
+      - alert: LokiIngestionSLOViolation
+        expr: avg_over_time(loki:ingestion:error_ratio[24h]) > 0.001
+        for: 1h
+        labels:
+          severity: critical
+          slo: log_ingestion
+        annotations:
+          summary: "Loki log ingestion SLO violation"
+          description: "24h log ingestion error ratio of {{ $value | printf '%.3f' }} exceeds target SLO of 99.9% success rate"
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiingestionerrorbudget"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      - alert: LokiQuerySLOViolation
+        expr: avg_over_time(loki:query:error_ratio[24h]) > 0.01
+        for: 1h
+        labels:
+          severity: critical
+          slo: query_performance
+        annotations:
+          summary: "Loki query SLO violation"
+          description: "24h query error ratio of {{ $value | printf '%.3f' }} exceeds target SLO of 99% success rate"
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokiqueryerrorbudget"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"
+
+      - alert: LokiStorageSLOViolation
+        expr: avg_over_time(loki:storage:error_ratio[24h]) > 0.001
+        for: 1h
+        labels:
+          severity: critical
+          slo: storage_operations
+        annotations:
+          summary: "Loki storage SLO violation"
+          description: "24h storage operation error ratio of {{ $value | printf '%.3f' }} exceeds target SLO of 99.9% success rate"
+          runbook: "https://github.com/brunovlucena/auto-devops/blob/main/20-platform/services/loki/RUNBOOK.md#lokistorageerrorbudget"
+          dashboard: "https://grafana.lucena.cloud/loki-alerts/loki-alerts?orgId=1&from=now-30m&to=now&timezone=browser&viewPanel=panel-24"

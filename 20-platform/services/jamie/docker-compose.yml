@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Jamie AI DevOps Copilot
+  jamie:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - JAMIE_MODEL=llama3.1:8b
+      - JAMIE_MEMORY_DIR=/app/jamie_memory
+      - JAMIE_LOG_LEVEL=INFO
+    depends_on:
+      - ollama
+    volumes:
+      - jamie_memory:/app/jamie_memory
+    networks:
+      - jamie_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - jamie_network
+    restart: unless-stopped
+    environment:
+      - OLLAMA_ORIGINS=*
+    # Pull the model on startup
+    command: >
+      sh -c "
+        ollama serve &
+        sleep 10 &&
+        ollama pull llama3.1:8b &&
+        wait
+      "
+
+  # Redis for session management (future use)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - jamie_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # MongoDB for vector storage (future use)
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - jamie_network
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=jamie
+      - MONGO_INITDB_ROOT_PASSWORD=jamie_pass
+
+volumes:
+  jamie_memory:
+  ollama_data:
+  redis_data:
+  mongodb_data:
+
+networks:
+  jamie_network:
+    driver: bridge 

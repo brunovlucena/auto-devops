@@ -1,0 +1,107 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "alloy-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "alloy-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "alloy-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "alloy-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "alloy-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: alloy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+  source:
+    repoURL: git@github.com:notifi-network/infra.git
+    path: 20-platform/services/alloy/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: alloy
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "loki-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "loki-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "loki-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "loki-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "loki-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: loki
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+  source:
+    repoURL: git@github.com:notifi-network/infra.git
+    path: 20-platform/services/loki/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: loki
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "metrics-server-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "metrics-server-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "metrics-server-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "metrics-server-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "metrics-server-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: metrics-server
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+  source:
+    repoURL: git@github.com:notifi-network/infra.git
+    path: 20-platform/services/metrics-server/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: metrics-server
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml

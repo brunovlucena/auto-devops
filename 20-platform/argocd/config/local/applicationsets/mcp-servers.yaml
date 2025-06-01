@@ -1,0 +1,37 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-mcp
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "grafana-mcp-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "grafana-mcp-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "grafana-mcp-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "grafana-mcp-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "grafana-mcp-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana-mcp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  source:
+    repoURL: git@github.com:notifi-network/infra.git
+    path: 20-platform/services/grafana-mcp/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: grafana-mcp
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml
+--- 
+# TODO: Add the other MCP servers:
+# - prometheus-mcp
+# - github-mcp

@@ -1,0 +1,16 @@
+ignoreDifferences:
+  - kind: Secret
+    name: admin-user-credentials
+    namespace: rabbitmq
+    jsonPointers:
+      - /type
+  - kind: Permission
+    name: admin-full-access
+    namespace: rabbitmq
+    jsonPointers:
+      - /userReference/namespace
+  - kind: Permission
+    name: test-full-access
+    namespace: rabbitmq
+    jsonPointers:
+      - /userReference/namespace

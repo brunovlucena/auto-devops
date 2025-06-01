@@ -1,0 +1,27 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  labels:
+    app: rabbitmq
+  annotations:
+    rabbitmq.com/topology-allowed-namespaces: "knative-lambda,knative-eventing,rabbitmq"
+  name: rabbitmq-cluster
+spec:
+  replicas: 1
+  tolerations:
+    - key: "rabbitmq"
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+  rabbitmq:
+    additionalPlugins:
+    - rabbitmq_top
+    - rabbitmq_shovel
+    - rabbitmq_prometheus
+    - rabbitmq_prometheus_exporter
+    - rabbitmq_management
+    - rabbitmq_management_agent
+    - rabbitmq_tracing
+    - rabbitmq_stream
+    - rabbitmq_stream_management
+    - rabbitmq_auth_backend_oauth2

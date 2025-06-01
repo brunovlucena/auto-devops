@@ -1,0 +1,16 @@
+logLevel: "debug"
+logFormat: "json"
+
+affinity: {}
+
+tolerations: []
+
+## @section Metrics parameters
+metrics:
+  serviceMonitor:
+    enabled: true
+
+  ## Grafana dashboards configuration
+  ##
+  dashboards:
+    create: true

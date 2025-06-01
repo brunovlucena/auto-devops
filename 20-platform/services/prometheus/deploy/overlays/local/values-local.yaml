@@ -1,0 +1,236 @@
+kube-prometheus-stack:
+  # Alertmanager
+  alertmanager:
+    replicas: 1
+
+    config:
+      global:
+        resolve_timeout: 5m
+
+      route:
+        routes:
+        - receiver: "null"
+          matchers:
+            - alertname =~ "null"
+
+        - receiver: "infra-pd"
+          continue: true
+          matchers:
+          - severity =~ "critical"
+
+        - receiver: 'infra-notifications'
+          matchers:
+          - severity =~ "critical|warning"
+
+      receivers:
+        - name: "null"
+
+        - name: "infra-pd"
+          pagerduty_configs:
+          - service_key: "aaaaaaaaaaaaaaaaaaaa" # TODO: Use Sealed Secrets
+
+        - name: 'infra-notifications'
+          slack_configs:
+            - channel: "#infra-alerts"
+              send_resolved: true
+              api_url: https://hooks.slack.com/services/vvvvvvvvvvv/ssssssssssss/aaaaaaaaaaaaaaaaaaaaaaaa # TODO: Use Sealed Secrets
+              title: '{{ template "slack.monzo.title" . }}'
+              icon_emoji: '{{ template "slack.monzo.icon_emoji" . }}'
+              color: '{{ template "slack.monzo.color" . }}'
+              text: '{{ template "slack.monzo.text" . }}'
+              actions:
+                - type: button
+                  text: 'Runbook :green_book:'
+                  url: '{{ (index .Alerts 0).Annotations.runbook }}'
+                - type: button
+                  text: 'Query :mag:'
+                  url: '{{ (index .Alerts 0).GeneratorURL }}'
+                - type: button
+                  text: 'Dashboard :grafana:'
+                  url: '{{ (index .Alerts 0).Annotations.dashboard }}'
+                - type: button
+                  text: 'Silence :no_bell:'
+                  url: '{{ template "__alert_silence_link" . }}'
+                - type: button
+                  text: '{{ template "slack.monzo.link_button_text" . }}'
+                  url: '{{ .CommonAnnotations.link_url }}'
+
+    # ingress:
+    #   enabled: true
+    #   ingressClassName: alb
+    #   annotations:
+    #     alb.ingress.kubernetes.io/scheme: internet-facing
+    #     alb.ingress.kubernetes.io/group.name: alertmanager
+    #     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    #     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:111111111111111111:certificate/111111111111111111111111111
+    #     alb.ingress.kubernetes.io/healthcheck-path: /
+    #     alb.ingress.kubernetes.io/healthcheck-port: "8082"
+    #   hosts:
+    #     - alertmanager.local.auto-devops
+    #   paths:
+    #     - /*
+    #   serviceName: prometheus-kube-prometheus-alertmanager
+    #   servicePort: 9093
+
+    alertmanagerSpec:
+      logFormat: json
+      logLevel: debug
+
+      externalUrl: https://alertmanager.local.auto-devops
+
+      # containers:
+      # - name: oauth-proxy
+      #   image: quay.io/oauth2-proxy/oauth2-proxy:v7.5.1
+      #   args:
+      #   - --upstream=http://localhost:9093
+      #   - --http-address=0.0.0.0:8081
+      #   - --metrics-address=0.0.0.0:8082
+      #   - --provider=google
+      #   - --client-id=111111111111111-6aaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com # TODO: SEALED SECRETS
+      #   - --client-secret=GOAAAAAAAAAAAAAAAAAAAAAAAAa # TODO: SEALED SECRETS
+      #   - --cookie-secret=OVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVvv TODO: SEALED SECRETS
+      #   - --email-domain="local.auto-devops"
+      #   - --redirect-url=https://alertmanager.local.auto-devops/oauth2/callback
+      #   - --cookie-secure=true
+      #   - --skip-provider-button=true
+      #   - --pass-authorization-header=true
+      #   - --pass-basic-auth=true
+      #   - --pass-access-token=true
+      #   - --set-authorization-header=true
+      #   - --skip-jwt-bearer-tokens=true
+      #   - --ssl-insecure-skip-verify=true
+      #   - --cookie-domain=.dev.local.auto-devops
+      #   - --whitelist-domain=.dev.local.auto-devops
+      #   - --proxy-prefix=/oauth2
+      #   ports:
+      #   - containerPort: 8081
+      #     name: oauth-proxy
+      #     protocol: TCP
+      #   - containerPort: 8082
+      #     name: oauth-metrics
+      #     protocol: TCP
+
+ # Grafana
+  grafana:
+    replicas: 1
+
+    adminPassword: AAAAAAAAAaa # TODO: Use Sealed Secrets
+
+    # ingress:
+    #   enabled: true
+    #   ingressClassName: alb
+    #   annotations:
+    #     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    #     alb.ingress.kubernetes.io/scheme: "internet-facing"
+    #     alb.ingress.kubernetes.io/healthcheck-port: "30050"
+    #     alb.ingress.kubernetes.io/healthcheck-path:  "/login"
+    #     alb.ingress.kubernetes.io/healthcheck-protocol: "HTTP"
+    #     alb.ingress.kubernetes.io/target-type: "instance"
+    #     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:111111111111:certificate/bbbbbbbbbbbbbbbbbbb # TODO: SEALED SECRETS
+    #     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "10"
+    #     alb.ingress.kubernetes.io/success-codes: "200"
+    #   hosts:
+    #     - grafana.dev.local.auto-devops
+    #   path: /
+
+    sidecar:
+      # Log level default for all sidecars. Can be one of: DEBUG, INFO, WARN, ERROR, CRITICAL. Defaults to INFO
+      logLevel: INFO
+      datasources:
+        # Log level. Can be one of: DEBUG, INFO, WARN, ERROR, CRITICAL.
+        logLevel: "INFO"
+
+    grafana.ini:
+      assume_role_enabled: true
+      list_metrics_page_limit: 250 # 500
+      users:
+        auto_assign_org: true
+        auto_assign_org_id: 1
+        auto_assign_org_role: Editor
+        editors_can_admin: true
+      server:
+        domain: local.auto-devops
+        root_url: https://grafana.local.auto-devops
+      dataproxy:
+        timeout: 600 # Default: 30s. Fixes timeout awaiting response headers
+        max_open_connections: 100
+        max_idle_connections: 100
+        conn_max_lifetime: 14400
+      unified_alerting:
+        enabled: true
+      ssl_mode: disable
+      max_idle_conn: 2
+      auth:
+        sigv4_auth_enabled: true
+      # auth.google:
+      #   enabled: true
+      #   allow_sign_up: true
+      #   auto_login: false
+      #   name: Notifi Google SSO
+      #   client_id: AAAAAAAAAAAAAAAAAA.apps.googleusercontent.com
+      #   client_secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      #   scopes: https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email
+      #   auth_url: https://accounts.google.com/o/oauth2/auth
+      #   token_url: https://accounts.google.com/o/oauth2/token
+      #   api_url: https://openidconnect.googleapis.com/v1/userinfo
+      #   allowed_domains: local.auto-devops
+      #   hosted_domain: local.auto-devops
+      #   use_pkce: false
+      #   skip_org_role_sync: false
+
+  # Prometheus
+  prometheus:
+    prometheusSpec:
+      logLevel: debug
+      externalUrl: https://prometheus.local.auto-devops
+
+      # containers:
+      #   - name: oauth-proxy
+      #     image: quay.io/oauth2-proxy/oauth2-proxy:v7.5.1
+      #     args:
+      #     - --upstream=http://0.0.0.0:9090
+      #     - --http-address=0.0.0.0:8081
+      #     - --metrics-address=0.0.0.0:8082
+      #     - --provider=google
+      #     - --client-id=222222222222222222222222-6aaaaaaaaaaaaaaaaaaaaaaaaaaaa.apps.googleusercontent.com
+      #     - --client-secret=GOCSPXaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      #     - --cookie-secret=Obbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+      #     - --email-domain="local.scalert"
+      #     - --redirect-url=https://prometheus.local.auto-devops/oauth2/callback
+      #     - --cookie-secure=true
+      #     - --skip-provider-button=true
+      #     - --pass-authorization-header=true
+      #     - --pass-basic-auth=true
+      #     - --pass-access-token=true
+      #     - --set-authorization-header=true
+      #     - --skip-jwt-bearer-tokens=true
+      #     - --ssl-insecure-skip-verify=true
+      #     - --cookie-domain=.local.auto-devops
+      #     - --whitelist-domain=.local.auto-devops
+      #     - --proxy-prefix=/oauth2
+      #     ports:
+      #     - containerPort: 8081
+      #       name: oauth-proxy
+      #       protocol: TCP
+      #     - containerPort: 8082
+      #       name: oauth-metrics
+      #       protocol: TCP
+      #     resources: {} # TODO: Set it
+
+    ingress:
+      enabled: true
+      ingressClassName: alb
+      annotations:
+        kubernetes.io/ingress.class: alb
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+        alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:1111111111111111111:certificate/1111111111111111111111111
+        alb.ingress.kubernetes.io/healthcheck-path: /
+      hosts:
+        - prometheus.local.auto-devops
+      # Add path configuration to route through the oauth-proxy
+      paths:
+        - /*
+      serviceName: prometheus-kube-prometheus-prometheus
+      servicePort: 8081

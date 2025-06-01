@@ -1,0 +1,140 @@
+tempo-distributed:
+  server:
+    grpc_server_max_recv_msg_size: 25165824
+    grpc_server_max_send_msg_size: 25165824
+
+  # Global overrides
+  global_overrides:
+    defaults:
+      global:
+        max_bytes_per_trace: 20000000 # 20MB
+
+      ingestion:
+        rate_limit_bytes: 40000000 # 40MB
+
+        max_traces_per_user: 6000 # What about max_live_traces?
+
+        burst_size_bytes: 100000000 # 100MB
+
+  # Configuration for the ingester
+  ingester:
+
+    replicas: 3
+
+    config:
+      max_block_bytes: 800000000 # 800MB
+
+    # resources:
+    #   requests:
+    #     cpu: "1000m"
+    #     memory: "6Gi"
+    #   limits:
+    #     cpu: "1500m"
+    #     memory: "6Gi"
+
+  # Configuration for the distributor
+  distributor:
+    replicas: 1
+
+    # resources:
+    #   requests:
+    #     cpu: "250m"
+    #     memory: "5Gi"
+    #   limits:
+    #     cpu: "500m"
+    #     memory: "5Gi"
+
+    extraArgs:
+      - -mem-ballast-size-mbs=512 # TODO: create variable and match memory
+
+  # Configuration for the compactor
+  compactor:
+    replicas: 1
+
+    config:
+      compaction:
+        max_block_bytes: 500000000 # Default is 500000000
+        # -- Duration to keep blocks
+        block_retention: 48h
+        # Duration to keep blocks that have been compacted elsewhere
+        compacted_block_retention: 1h
+        # -- Blocks in this time window will be compacted together
+        compaction_window: 1h
+        # -- Amount of data to buffer from input blocks
+        retention_duration: 48h  # 2-day retention period. Default is 72h
+
+    # resources:
+    #   requests:
+    #     cpu: "300m"
+    #     memory: "3Gi"
+    #   limits:
+    #     cpu: "600m"
+    #     memory: "3Gi"
+
+  # Configuration for the querier
+  querier:
+    replicas: 1
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "512Mi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "512Mi"
+
+  # Configuration for the query-frontend
+  queryFrontend:
+    replicas: 1
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "512Mi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "512Mi"
+
+  # Configuration for the metrics-generator
+  metricsGenerator:
+
+    # resources:
+    #   requests:
+    #     cpu: "250m"
+    #     memory: "512Mi"
+    #   limits:
+    #     cpu: "500m"
+    #     memory: "512Mi"
+
+  memcached:
+    replicas: 1
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "1Gi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "1Gi"
+
+    extraArgs:
+      - -m
+      - "1024"
+      - -c
+      - "1024"
+      - -t
+      - "4"
+
+  minio:
+    enabled: true
+
+    mode: standalone # Changed from standalone to distributed
+    drivesPerNode: 1 # Each pod will have one drive
+    replicas: 1
+
+    persistence:
+      size: 50Gi
+
+  storage:
+    trace:
+      retention: 24h  # 1 days retention

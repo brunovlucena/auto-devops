@@ -1,0 +1,15 @@
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: test
+spec:
+  rabbitmqClusterReference:
+    name: rabbitmq-cluster
+    namespace: rabbitmq
+  tags:
+    - administrator
+    - policymaker
+    - management
+  importCredentialsSecret:
+    name: test-user-credentials

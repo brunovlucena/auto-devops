@@ -1,0 +1,9 @@
+name: observability
+description: A minimal Kubernetes Go Pulumi program
+runtime: go
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: https://www.pulumi.com/ai/api/project/cbb990de-5464-435e-bf25-1535decdabd2.zip
+  kubernetes:version: "1.28.0"
+  argocd:version: "5.27.0"
