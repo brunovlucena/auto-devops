@@ -1,0 +1,33 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: linkerd
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "linkerd-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "linkerd-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "linkerd-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "linkerd-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "linkerd-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: linkerd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  source:
+    repoURL: git@github.com:notifi-network/infra.git
+    path: 20-platform/services/linkerd/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: linkerd
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml

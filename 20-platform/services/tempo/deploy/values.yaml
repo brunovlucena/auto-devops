@@ -1,0 +1,711 @@
+tempo-distributed:
+  server:
+    # -- Log level. Can be set to trace, debug, info (default), warn, error, fatal, panic
+    logLevel: debug
+    logFormat: json
+    grpc_server_max_recv_msg_size: 25165824
+    grpc_server_max_send_msg_size: 25165824
+
+  tempo:
+    readinessProbe:
+      httpGet:
+        path: /metrics
+        port: 3100
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 3
+
+    livenessProbe:
+      httpGet:
+        path: /metrics
+        port: 3100
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 3
+
+  # Ports configuration
+  #
+  traces:
+
+    otlp:
+      http:
+        enabled: false # Low performance
+
+      grpc:
+        enabled: true
+        # receiverConfig:
+        #   max_recv_msg_size_mib: 1000 # 1GB
+
+  # Global overrides
+  global_overrides:
+    defaults:
+      global:
+        # max_bytes_per_trace controls the maximum size allowed for a single trace.
+        # While set to 20MB here, this is considered quite large for distributed tracing.
+        # Typical traces in production systems are much smaller (few KB to few MB).
+        # Large traces can:
+        # - Consume significant memory in the ingester
+        # - Impact query performance
+        # - Cause higher latency in trace processing
+        # - Potentially overwhelm the system if many arrive simultaneously
+        # Best practices:
+        # - Keep traces as small as possible
+        # - Only include essential information in spans
+        # - Avoid storing large payloads in trace attributes
+        # - Use sampling for high-volume traces
+        # Default is 5MB (5000000 bytes)
+        max_bytes_per_trace: 5000000 # 5MB
+
+      ingestion:
+        # rate_limit_bytes controls the maximum rate at which traces can be ingested.
+        # It acts as a token bucket rate limiter, limiting the average ingestion rate.
+        # When set to 50000000 (50MB), it means Tempo will accept on average 50MB of trace data per second.
+        # This helps prevent overwhelming the system and ensures stable performance.
+        #
+        # The token bucket algorithm works by:
+        # 1. Refilling tokens at a constant rate (rate_limit_bytes)
+        # 2. Each token represents 1 byte of data
+        # 3. When data arrives, it consumes tokens equal to its size
+        # 4. If no tokens are available, the data is dropped
+        #
+        # This setting is crucial for:
+        # - Preventing memory exhaustion in the ingester
+        # - Maintaining stable performance under load
+        # - Ensuring fair resource usage across tenants
+        # - Protecting the system from traffic spikes
+        rate_limit_bytes: 15000000 # 15MB
+
+        #The max_traces_per_user setting limits the number of traces that can 
+        # be stored in memory per tenant/user at any given time.
+        # NOTE: Raise this value if you see the reason live_traces_exceeded
+        max_traces_per_user: 1000 # What about max_live_traces?
+
+        # Note: New traces will be dropped with the reason live_traces_exceeded
+        # burst_size_bytes defines the maximum burst of data that can be ingested at once.
+        # It works in conjunction with rate_limit_bytes to allow temporary spikes in ingestion.
+        # When set to 70000000 (70MB), it means Tempo can temporarily accept up to 70MB of trace data
+        # in a burst, even if it exceeds the rate_limit_bytes. This helps handle traffic spikes
+        # while still maintaining the average rate limit over time.
+        #
+        # The burst mechanism works by:
+        # 1. Allowing the token bucket to accumulate tokens up to burst_size_bytes
+        # 2. When a burst of traffic arrives, it can consume all accumulated tokens
+        # 3. After the burst, the system returns to the normal rate_limit_bytes
+        #
+        # This setting is important for:
+        # - Handling sudden traffic spikes without dropping data
+        # - Accommodating batch processing or periodic high-volume operations
+        # - Maintaining service quality during peak usage periods
+        # - Providing flexibility while still maintaining overall rate limits
+        #
+        # Note: Setting burst_size_bytes too high can lead to:
+        # - Increased memory pressure
+        # - Higher latency during burst periods
+        # - Potential impact on query performance
+        # - Risk of system instability if bursts are too large
+        burst_size_bytes: 100000000 # 100MB
+
+  # Configuration for the ingester
+  ingester:
+
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    config:
+      # -- maximum size of a block before cutting it
+      # NOTE: Making blocks smaller to reduce memory usage
+      max_block_bytes: 250000000 # 250MB
+
+      # -- Maximum length of time before cutting a block
+      max_block_duration: 10m # Default is 45m
+
+      # -- Duration to keep blocks in the ingester after they 
+      #    have been flushed
+      complete_block_timeout: 1h # Default is 1h
+
+      # -- Number of copies of spans to store in the ingester ring
+      replication_factor: 2
+
+      # Controls how long a trace must be inactive before being flushed from memory 
+      # to the Write-Ahead Log (WAL). Shorter periods reduce memory 
+      # usage but increase I/O operations.
+      # make traces queryable sooner and reduce memory pressure
+      trace_idle_period: 10 # 20s
+
+      # Determines how frequently the system sweeps through all tenants to move 
+      # traces through the pipeline (live memory → WAL → completed blocks). 
+      # Reduce Flush Intervals: Lowering the ingester.flush_check_period 
+      # and ingester.trace_idle_period settings can help move spans 
+      # from memory to disk more quickly, reducing memory usage and 
+      # potentially lowering CPU consumption. However, this may 
+      # increase the number of blocks and pressure on compactors. 
+      # Reduced from 60s to 30s to make traces available for querying faster
+      flush_check_period: 10 # 30s # Default is 60s
+
+    # resources:
+    #   requests:
+    #     cpu: "500m"
+    #     memory: "7Gi"
+    #   limits:
+    #     cpu: "1500m"
+    #     memory: "7Gi"
+
+    persistence:
+      # -- Enable creating PVCs which is required when using boltdb-shipper
+      enabled: false
+
+    topologySpreadConstraints: {} # TODO: Revert it to default (ingester-0 stuck on Pending)
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+  # Configuration for the distributor
+  distributor:
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    # resources:
+    #   requests:
+    #     cpu: "250m"
+    #     memory: "5Gi"
+    #   limits:
+    #     cpu: "500m"
+    #     memory: "5Gi"
+
+    extraArgs:
+      - -mem-ballast-size-mbs=512 # TODO: create variable and match memory
+
+    config:
+      log_received_spans:
+        # Enable to log every received span to help debug ingestion or calculate span error distributions using the logs.
+        enabled: false # Note: Do not enable this for production
+        include_all_attributes: false # Note: Do not enable this for production
+        filter_by_status_error: false
+
+      log_discarded_spans:
+        # Enable to log every discarded span to help debug ingestion or calculate span error distributions using the logs.
+        enabled: false # Note: Do not enable this for production
+        include_all_attributes: false # Note: Do not enable this for production
+        filter_by_status_error: false
+
+      metric_received_spans:
+        enabled: true
+
+      usage:
+        cost_attribution:
+          enabled: true
+          max_attributes: 10000
+          # Interval after which a series is considered stale and will be deleted from the registry.
+          # Once a metrics series is deleted, it won't be emitted anymore, keeping active series low.
+          stale_duration: 15m0s
+
+    nodeSelector:
+      observability: "true"
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      - key: "rabbitmq"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+  # Configuration for the compactor
+  compactor:
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    config:
+      compaction:
+        max_block_bytes: 500000000 # Default is 500000000
+        # -- Duration to keep blocks
+        block_retention: 48h
+        # Duration to keep blocks that have been compacted elsewhere
+        compacted_block_retention: 1h
+        # -- Blocks in this time window will be compacted together
+        compaction_window: 1h
+        # -- Amount of data to buffer from input blocks
+        retention_duration: 48h  # 2-day retention period. Default is 72h
+
+    nodeSelector:
+      observability: "true"
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      - key: "rabbitmq"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+    # resources:
+    #   requests:
+    #     cpu: "300m"
+    #     memory: "3Gi"
+    #   limits:
+    #     cpu: "600m"
+    #     memory: "3Gi"
+
+  # Configuration for the querier
+  querier:
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    nodeSelector:
+      observability: "true"
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "512Mi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "512Mi"
+
+    config:
+      frontend_worker:
+        # -- Maximum time a querier worker waits before timeouting on a request
+        frontend_worker_timeout: 3m
+    #   search:
+    #     prefer_self: true
+    #   # -- Maximum duration a query will be allowed to run before being canceled.
+    #   # This limit helps prevent resource exhaustion for complex or poorly optimized queries.
+    #   # Lower values provide better protection against runaway queries at the cost of failing legitimate ones.
+    #   query_timeout: 60s
+
+  # Configuration for the query-frontend
+  queryFrontend:
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    nodeSelector:
+      observability: "true"
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "512Mi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "512Mi"
+
+    service:
+      annotations: {}
+
+  # Configuration for the metrics-generator
+  metricsGenerator:
+    enabled: true
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    nodeSelector:
+      observability: "true"
+
+    tolerations:
+    - key: "observability"
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+
+    # resources:
+    #   requests:
+    #     cpu: "250m"
+    #     memory: "512Mi"
+    #   limits:
+    #     cpu: "500m"
+    #     memory: "512Mi"
+
+    config:
+      storage:
+        remote_write_flush_deadline: 1m
+        remote_write:
+          - url: "http://kube-prometheus-stack-prometheus.prometheus:9090/api/v1/write" # TODO: use variable. Change it when using Grafana Mimir
+      processors:
+        - span-metrics
+        - service-graphs
+      processor:
+        service_graphs:
+          max_items: 10000 # default is 10000 # TODO: check if we can fine-tune this
+          workers: 30 # default is 10
+        span_metrics:
+          dimensions:
+            - service.name
+            - operation.name
+            - http.method
+            - http.status_code
+          histogram_buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.02, 2.05, 4.10]
+          enable_target_info: true
+          target_info_excluded_dimensions:
+            - service.name
+            - operation.name
+        local_blocks:
+          # If this value is exceeded, traces will be dropped with reason: `live_traces_exceeded`
+          # NOTE: Look at TempoDiscardedSpans
+          # NOTE: May need more cpu to the compactor
+          max_live_traces: 3000 # Default is 1000
+
+    persistence:
+      # -- Enable creating PVCs if you have kind set to StatefulSet. This disables using local disk or memory configured in walEmptyDir
+      enabled: true
+      size: 10Gi
+
+  memcached:
+    enabled: true
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "1Gi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "1Gi"
+
+    extraArgs:
+      - -m
+      - "1024"
+      - -c
+      - "1024"
+      - -t
+      - "4"
+
+    nodeSelector:
+      observability: "true"
+
+    tolerations:
+    - key: "observability"
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+
+  memcachedExporter:
+    enabled: true
+    resources: {}
+
+  # Add cache configuration to connect ingester to memcached
+  cache:
+    caches:
+      - memcached:
+          # Hostname for memcached service to use. If empty and if addresses is unset, no memcached will be used.
+          host: 'tempo-distributed-memcached.tempo' # TODO: Do not change this.
+          service: memcached-client # TODO: Do not change this.
+          consistent_hash: true
+          timeout: 1500ms
+        roles:
+          - bloom
+          - parquet-footer
+          - frontend-search
+
+  metaMonitoring:
+    serviceMonitor:
+      enabled: true
+
+  minio:
+    enabled: true # Enable MinIO as the storage backend
+
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    mode: standalone # Changed from standalone to distributed
+    drivesPerNode: 1 # Each pod will have one drive
+
+    metrics:
+      serviceMonitor:
+        enabled: true
+
+    rootUser: grafana-tempo
+    rootPassword: supersecret
+
+    buckets:
+      - name: tempo-traces
+        policy: none
+        purge: false
+
+    persistence:
+      enabled: true
+      size: 500Gi
+      storageClass: "gp3"
+
+    nodeSelector:
+      observability: "true"
+
+    tolerations:
+    - key: "observability"
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+
+  # tempo-distributed-config
+  config: |
+    multitenancy_enabled: {{ .Values.multitenancyEnabled }}
+
+    usage_report:
+      reporting_enabled: {{ .Values.reportingEnabled }}
+
+    {{- if .Values.enterprise.enabled }}
+    license:
+      path: "/license/license.jwt"
+
+    admin_api:
+      leader_election:
+        enabled: true
+        ring:
+          kvstore:
+            store: "memberlist"
+
+    auth:
+      type: enterprise
+
+    http_api_prefix: {{get .Values.tempo.structuredConfig "http_api_prefix"}}
+
+    admin_client:
+      storage:
+        backend: {{.Values.storage.admin.backend}}
+        {{- if eq .Values.storage.admin.backend "s3"}}
+        s3:
+          {{- toYaml .Values.storage.admin.s3 | nindent 6}}
+        {{- end}}
+        {{- if eq .Values.storage.admin.backend "gcs"}}
+        gcs:
+          {{- toYaml .Values.storage.admin.gcs | nindent 6}}
+        {{- end}}
+        {{- if eq .Values.storage.admin.backend "azure"}}
+        azure:
+          {{- toYaml .Values.storage.admin.azure | nindent 6}}
+        {{- end}}
+        {{- if eq .Values.storage.admin.backend "swift"}}
+        swift:
+          {{- toYaml .Values.storage.admin.swift | nindent 6}}
+        {{- end}}
+        {{- if eq .Values.storage.admin.backend "filesystem"}}
+        filesystem:
+          {{- toYaml .Values.storage.admin.filesystem | nindent 6}}
+        {{- end}}
+    {{- end }}
+
+    compactor:
+      compaction:
+        block_retention: {{ .Values.compactor.config.compaction.block_retention }}
+        compacted_block_retention: {{ .Values.compactor.config.compaction.compacted_block_retention }}
+        compaction_window: {{ .Values.compactor.config.compaction.compaction_window }}
+        v2_in_buffer_bytes: {{ .Values.compactor.config.compaction.v2_in_buffer_bytes }}
+        v2_out_buffer_bytes: {{ .Values.compactor.config.compaction.v2_out_buffer_bytes }}
+        max_compaction_objects: {{ .Values.compactor.config.compaction.max_compaction_objects }}
+        max_block_bytes: {{ .Values.compactor.config.compaction.max_block_bytes }}
+        retention_concurrency: {{ .Values.compactor.config.compaction.retention_concurrency }}
+        v2_prefetch_traces_count: {{ .Values.compactor.config.compaction.v2_prefetch_traces_count }}
+        max_time_per_tenant: {{ .Values.compactor.config.compaction.max_time_per_tenant }}
+        compaction_cycle: {{ .Values.compactor.config.compaction.compaction_cycle }}
+      ring:
+        kvstore:
+          store: memberlist
+
+    distributor:
+      max_span_attr_byte: 2048
+      #  Enable to metric every received span to help debug ingestion
+      metric_received_spans:
+        enabled: true
+      ring:
+        kvstore:
+          store: memberlist
+      receivers:
+        {{- if or (.Values.traces.otlp.http.enabled) (.Values.traces.otlp.grpc.enabled) }}
+        otlp:
+          protocols:
+            {{- if .Values.traces.otlp.http.enabled }}
+            http:
+              {{- $mergedOtlpHttpReceiverConfig := mustMergeOverwrite (dict "endpoint" "0.0.0.0:4318") .Values.traces.otlp.http.receiverConfig }}
+              {{- toYaml $mergedOtlpHttpReceiverConfig | nindent 10 }}
+            {{- end }}
+            {{- if .Values.traces.otlp.grpc.enabled }}
+            grpc:
+              {{- $mergedOtlpGrpcReceiverConfig := mustMergeOverwrite (dict "endpoint" "0.0.0.0:4317") .Values.traces.otlp.grpc.receiverConfig }}
+              {{- toYaml $mergedOtlpGrpcReceiverConfig | nindent 10 }}
+            {{- end }}
+        {{- end }}
+      {{- if .Values.distributor.config.log_discarded_spans.enabled }}
+      log_discarded_spans:
+        enabled: {{ .Values.distributor.config.log_discarded_spans.enabled }}
+        include_all_attributes: {{ .Values.distributor.config.log_discarded_spans.include_all_attributes }}
+        filter_by_status_error: {{ .Values.distributor.config.log_discarded_spans.filter_by_status_error }}
+      {{- end }}
+      {{- if or .Values.distributor.config.log_received_traces .Values.distributor.config.log_received_spans.enabled }}
+      log_received_spans:
+        enabled: {{ or .Values.distributor.config.log_received_traces .Values.distributor.config.log_received_spans.enabled }}
+        include_all_attributes: {{ .Values.distributor.config.log_received_spans.include_all_attributes }}
+        filter_by_status_error: {{ .Values.distributor.config.log_received_spans.filter_by_status_error }}
+      {{- end }}
+      {{- if .Values.distributor.config.extend_writes }}
+      extend_writes: {{ .Values.distributor.config.extend_writes }}
+      {{- end }}
+
+    querier:
+      frontend_worker:
+        frontend_address: {{ include "tempo.resourceName" (dict "ctx" . "component" "query-frontend-discovery") }}:9095
+        {{- if .Values.querier.config.frontend_worker.grpc_client_config }}
+        grpc_client_config:
+          {{- toYaml .Values.querier.config.frontend_worker.grpc_client_config | nindent 6 }}
+        {{- end }}
+      trace_by_id:
+        query_timeout: {{ .Values.querier.config.trace_by_id.query_timeout }}
+      search:
+        external_endpoints: {{- toYaml .Values.querier.config.search.external_endpoints | nindent 6 }}
+        query_timeout: {{ .Values.querier.config.search.query_timeout }}
+        prefer_self: {{ .Values.querier.config.search.prefer_self }}
+        external_hedge_requests_at: {{ .Values.querier.config.search.external_hedge_requests_at }}
+        external_hedge_requests_up_to: {{ .Values.querier.config.search.external_hedge_requests_up_to }}
+        external_backend: {{ .Values.querier.config.search.external_backend }}
+      max_concurrent_queries: {{ .Values.querier.config.max_concurrent_queries }}
+
+    query_frontend:
+      max_outstanding_per_tenant: {{ .Values.queryFrontend.config.max_outstanding_per_tenant }}
+      max_retries: {{ .Values.queryFrontend.config.max_retries }}
+      search:
+        target_bytes_per_job: {{ .Values.queryFrontend.config.search.target_bytes_per_job }}
+        concurrent_jobs: {{ .Values.queryFrontend.config.search.concurrent_jobs }}
+      trace_by_id:
+        query_shards: {{ .Values.queryFrontend.config.trace_by_id.query_shards }}
+      metrics:
+        concurrent_jobs:  {{ .Values.queryFrontend.config.metrics.concurrent_jobs }}
+        target_bytes_per_job:  {{ .Values.queryFrontend.config.metrics.target_bytes_per_job }}
+        max_duration: {{ .Values.queryFrontend.config.metrics.max_duration }}
+        query_backend_after: {{ .Values.queryFrontend.config.metrics.query_backend_after }}
+        interval: {{ .Values.queryFrontend.config.metrics.interval }}
+        duration_slo: {{ .Values.queryFrontend.config.metrics.duration_slo }}
+        throughput_bytes_slo: {{ .Values.queryFrontend.config.metrics.throughput_bytes_slo }}
+
+    metrics_generator:
+      ring:
+        kvstore:
+          store: memberlist
+      processor:
+        {{- toYaml .Values.metricsGenerator.config.processor | nindent 6 }}
+      storage:
+        {{- toYaml .Values.metricsGenerator.config.storage | nindent 6 }}
+      traces_storage:
+        {{- toYaml .Values.metricsGenerator.config.traces_storage | nindent 6 }}
+      registry:
+        {{- toYaml .Values.metricsGenerator.config.registry | nindent 6 }}
+      metrics_ingestion_time_range_slack: {{ .Values.metricsGenerator.config.metrics_ingestion_time_range_slack }}
+
+    ingester:
+      lifecycler:
+        ring:
+          replication_factor: {{ .Values.ingester.config.replication_factor }}
+          {{- if .Values.ingester.zoneAwareReplication.enabled }}
+          zone_awareness_enabled: true
+          {{- end }}
+          kvstore:
+            store: memberlist
+        tokens_file_path: /var/tempo/tokens.json
+      {{- if .Values.ingester.config.trace_idle_period }}
+      trace_idle_period: {{ .Values.ingester.config.trace_idle_period }}
+      {{- end }}
+      {{- if .Values.ingester.config.flush_check_period }}
+      flush_check_period: {{ .Values.ingester.config.flush_check_period }}
+      {{- end }}
+      {{- if .Values.ingester.config.max_block_bytes }}
+      max_block_bytes: {{ .Values.ingester.config.max_block_bytes }}
+      {{- end }}
+      {{- if .Values.ingester.config.max_block_duration }}
+      max_block_duration: {{ .Values.ingester.config.max_block_duration }}
+      {{- end }}
+      {{- if .Values.ingester.config.complete_block_timeout }}
+      complete_block_timeout: {{ .Values.ingester.config.complete_block_timeout }}
+      {{- end }}
+      {{- if .Values.ingester.config.flush_all_on_shutdown }}
+      flush_all_on_shutdown: {{ .Values.ingester.config.flush_all_on_shutdown }}
+      {{- end }}
+    memberlist:
+      {{- with .Values.memberlist }}
+        {{- toYaml . | nindent 2 }}
+      {{- end }}
+      join_members:
+        - dns+{{ include "tempo.fullname" . }}-gossip-ring:{{ .Values.memberlist.bind_port }}
+
+    overrides:
+      {{- toYaml .Values.global_overrides | nindent 2 }}
+
+    server:
+      http_listen_port: {{ .Values.server.httpListenPort }}
+      log_level: {{ .Values.server.logLevel }}
+      log_format: {{ .Values.server.logFormat }}
+      grpc_server_max_recv_msg_size: {{ .Values.server.grpc_server_max_recv_msg_size }}
+      grpc_server_max_send_msg_size: {{ .Values.server.grpc_server_max_send_msg_size }}
+      http_server_read_timeout: {{ .Values.server.http_server_read_timeout }}
+      http_server_write_timeout: {{ .Values.server.http_server_write_timeout }}
+
+    cache:
+    {{- toYaml .Values.cache | nindent 2}}
+
+    storage:
+      trace:
+        {{- if .Values.storage.trace.block.version }}
+        block:
+          version: {{.Values.storage.trace.block.version}}
+          {{- if .Values.storage.trace.block.dedicated_columns}}
+          parquet_dedicated_columns:
+            {{ .Values.storage.trace.block.dedicated_columns | toYaml | nindent 8}}
+          {{- end }}
+        {{- end }}
+        pool:
+          max_workers: {{ .Values.storage.trace.pool.max_workers }}
+          queue_depth: {{ .Values.storage.trace.pool.queue_depth }}
+        backend: {{.Values.storage.trace.backend}}
+        {{- if eq .Values.storage.trace.backend "s3"}}
+        s3:
+          {{- toYaml .Values.storage.trace.s3 | nindent 6}}
+        {{- end }}
+        blocklist_poll: 5m
+        local:
+          path: /var/tempo/traces
+        wal:
+          path: /var/tempo/wal

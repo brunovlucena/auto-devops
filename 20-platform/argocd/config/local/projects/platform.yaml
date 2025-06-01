@@ -1,0 +1,62 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Platform stack components
+  sourceRepos:
+  - git@github.com:brunovlucena/auto-devops.git
+  - https://github.com/brunovlucena/auto-devops.git
+  - https://bitnami-labs.github.io/sealed-secrets
+  - https://github.com/cert-manager/cert-manager
+  - https://prometheus-community.github.io/helm-charts
+  - https://grafana.github.io/helm-charts
+  - https://helm.linkerd.io/edge
+  - https://kubernetes-sigs.github.io/metrics-server
+  - https://charts.bitnami.com/bitnami
+  - https://knative.github.io/operator
+  - https://aws.github.io/eks-charts
+  destinations:
+  - namespace: prometheus
+    server: https://kubernetes.default.svc
+  - namespace: loki
+    server: https://kubernetes.default.svc
+  - namespace: tempo
+    server: https://kubernetes.default.svc
+  - namespace: alloy
+    server: https://kubernetes.default.svc
+  - namespace: grafana
+    server: https://kubernetes.default.svc
+  - namespace: linkerd
+    server: https://kubernetes.default.svc
+  - namespace: linkerd-viz
+    server: https://kubernetes.default.svc
+  - namespace: kube-system
+    server: https://kubernetes.default.svc
+  - namespace: metrics-server
+    server: https://kubernetes.default.svc
+  - namespace: knative-serving
+    server: https://kubernetes.default.svc
+  - namespace: knative-eventing
+    server: https://kubernetes.default.svc
+  - namespace: knative-lambda
+    server: https://kubernetes.default.svc
+  - namespace: knative-operator
+    server: https://kubernetes.default.svc
+  - namespace: rabbitmq
+    server: https://kubernetes.default.svc
+  - namespace: rabbitmq-operator
+    server: https://kubernetes.default.svc
+  - namespace: knative-sources
+    server: https://kubernetes.default.svc
+  - namespace: rabbitmq-system
+    server: https://kubernetes.default.svc
+  - namespace: sealed-secrets
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*' 

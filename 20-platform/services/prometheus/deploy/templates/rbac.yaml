@@ -1,0 +1,31 @@
+---
+# NOTE: This is a workaround to allow the prometheus-kube-prometheus-admission to access secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-role-binding
+  namespace: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prometheus-role
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-kube-prometheus-admission
+    namespace: prometheus
+---
+# NOTE: This is a workaround to allow the prometheus-kube-prometheus-admission to access secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prometheus-role
+  namespace: prometheus 
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch

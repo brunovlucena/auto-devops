@@ -1,0 +1,566 @@
+loki:
+  # - SimpleScalable: Loki is deployed as 3 targets: read, write, and backend. Useful for medium installs easier to manage than distributed, up to a about 1TB/day.
+  # - Distributed: Loki is deployed as individual microservices. The most complicated but most capable, useful for large installs, typically over 1TB/day.
+  deploymentMode: SimpleScalable<->Distributed
+
+  serviceAccount:
+    create: true
+    name: loki
+
+  # -- Configuration for running Loki
+  loki:
+    readinessProbe:
+      httpGet:
+        path: /metrics
+        port: 3100
+      initialDelaySeconds: 10
+      periodSeconds: 10
+    livenessProbe:
+      httpGet:
+        path: /metrics
+        port: 3100
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+    # NOTES:
+    # - chunk_target_size: 1572864 # Default 1572864
+    # - max_line_size: 256 # Default 256
+    # @default -- See values.yaml
+    config: |
+      auth_enabled: {{ .Values.loki.auth_enabled }}
+
+      {{- with .Values.loki.server }}
+      server:
+        {{- toYaml . | nindent 2}}
+      {{- end}}
+
+      pattern_ingester:
+        enabled: {{ .Values.loki.pattern_ingester.enabled }}
+      ingester:
+        chunk_encoding: snappy
+        # TODO: chunk_target_size: 1572864
+        # TODO: max_line_size: 256
+        # TODO: adjust max_chunk_age (too_far_behind and out_of_order)
+      memberlist:
+      {{- if .Values.loki.memberlistConfig }}
+        {{- toYaml .Values.loki.memberlistConfig | nindent 2 }}
+      {{- else }}
+      {{- if .Values.loki.extraMemberlistConfig}}
+      {{- toYaml .Values.loki.extraMemberlistConfig | nindent 2}}
+      {{- end }}
+        join_members:
+          - {{ include "loki.memberlist" . }}
+          {{- with .Values.migrate.fromDistributed }}
+          {{- if .enabled }}
+          - {{ .memberlistService }}
+          {{- end }}
+          {{- end }}
+      {{- end }}
+
+      {{- if .Values.loki.commonConfig}}
+      common:
+      {{- toYaml .Values.loki.commonConfig | nindent 2}}
+        storage:
+        {{- include "loki.commonStorageConfig" . | nindent 4}}
+      {{- end}}
+
+      {{- with .Values.loki.limits_config }}
+      limits_config:
+        {{- tpl (. | toYaml) $ | nindent 4 }}
+      {{- end }}
+
+      runtime_config:
+        file: /etc/loki/runtime-config/runtime-config.yaml
+
+      {{- if .Values.loki.schemaConfig }}
+      schema_config:
+      {{- toYaml .Values.loki.schemaConfig | nindent 2}}
+      {{- end }}
+
+      {{- with .Values.loki.storage_config }}
+      storage_config:
+        {{- tpl (. | toYaml) $ | nindent 4 }}
+      {{- end }}
+    # End config  
+
+    # Should authentication be enabled
+    auth_enabled: false # TODO: enable it
+
+    # -- Check https://grafana.com/docs/loki/latest/configuration/#server for more info on the server configuration.
+    server:
+      http_listen_port: 3100
+      grpc_listen_port: 9095
+      http_server_read_timeout: 600s
+      http_server_write_timeout: 600s
+
+    # -- Limits config
+    limits_config:
+      ingestion_rate_mb: 50  # 50MB
+      ingestion_burst_size_mb: 100  # 100MB
+      per_stream_rate_limit: 50MB # 50MB
+      per_stream_rate_limit_burst: 50MB # 50MB
+      allow_structured_metadata: true
+      reject_old_samples: false
+      reject_old_samples_max_age: 1d
+      max_cache_freshness_per_query: 20m
+      split_queries_by_interval: 30m
+      query_timeout: 300s
+      volume_enabled: true
+
+    # -- Check https://grafana.com/docs/loki/latest/configuration/#common_config for more info on how to provide a common configuration
+    commonConfig:
+      path_prefix: /var/loki
+      replication_factor: 1
+      compactor_address: '{{ include "loki.compactorAddress" . }}'
+
+    # -- Storage config. Providing this will automatically populate all necessary storage configs in the templated config.
+    storage:
+      type: s3
+      bucketNames:
+        chunks: chunks
+        ruler: ruler
+        admin: admin
+      # filesystem:
+      #   chunks_directory: /var/loki/chunks
+      #   rules_directory: /var/loki/rules
+      #   admin_api_directory: /var/loki/admin
+      s3:
+        # NOTE: This is the s3 url for the loki service
+        endpoint: loki-minio.loki:9000
+        secretAccessKey: grafana-loki
+        accessKeyId: supersecretpassword
+        insecure: true
+
+    memcached:
+      chunk_cache:
+        enabled: true
+        host: "loki-chunks-cache.loki"
+        service: "memcached-client"
+        batch_size: 512  # Increased from 256
+        parallelism: 20  # Increased from 10
+        timeout: "1s"  # Added explicit timeout
+        max_item_size: "1m"  # Added max item size
+      results_cache:
+        enabled: true
+        host: "loki-results-cache.loki"
+        service: "memcached-client"
+        timeout: "500ms"
+        default_validity: "12h"
+
+    # -- Additional storage config
+    storage_config:
+      tsdb_shipper:
+        active_index_directory: /var/loki/index
+        cache_location: /var/loki/index_cache
+        cache_ttl: 24h         # Can be increased for faster performance over longer query periods, uses more disk space
+      aws:
+        # NOTE: This is the s3 url for the loki service
+        s3: s3://grafana-loki:supersecretpassword@loki-minio.loki:9000
+        bucketnames: chunks,ruler,admin
+
+    # -- Schema config
+    schemaConfig:
+      configs:
+        - from: 2025-01-01
+          store: boltdb-shipper
+          object_store: filesystem
+          schema: v11
+          index:
+            prefix: index_
+            period: 24h
+        - from: 2025-01-05
+          store: tsdb
+          object_store: aws
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+          
+    # -- Enable tracing
+    tracing:
+      enabled: true
+    # -- Structured loki configuration, takes precedence over `loki.config`, `loki.schemaConfig`, `loki.storageConfig`
+    structuredConfig: {}
+    # -- Additional query scheduler config
+    query_scheduler: {}
+    # --  Optional compactor configuration
+    compactor: {}
+    # --  Optional pattern ingester configuration
+    pattern_ingester:
+      enabled: false
+    # --  Optional analytics configuration
+    analytics: {}
+    # --  Optional querier configuration
+    query_range: {}
+    # --  Optional querier configuration
+    querier: {}
+    # --  Optional ingester configuration
+    ingester: {}
+    # --  Optional index gateway configuration
+    index_gateway:
+      mode: simple
+    # -- Optional distributor configuration
+    distributor: {}
+
+  # Configuration for the write pod(s)
+  write:
+    replicas: 1
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "256Mi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "256Mi"
+
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 2
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+      behavior:
+        scaleUp:
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 900
+        scaleDown:
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 1800
+          stabilizationWindowSeconds: 3600
+
+    affinity:
+      podAntiAffinity: {}
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: observability
+              operator: In
+              values: ["true"]
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+    persistence:
+      volumeClaimsEnabled: false
+      size: 50Gi
+      storageClassName: "gp3"
+
+    volumes:
+      - name: loki-data
+        emptyDir: {}
+
+    volumeMounts:
+      - name: loki-data
+        mountPath: /var/loki
+        subPath: ""
+        readOnly: false
+
+  read:
+    replicas: 2
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 60
+      targetMemoryUtilizationPercentage: 80
+
+    affinity:
+      podAntiAffinity: {}
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: observability
+              operator: In
+              values: ["true"]
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "256Mi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "256Mi"
+
+    persistence:
+      volumeClaimsEnabled: false
+      size: 5Gi
+      storageClassName: "gp3"
+
+    volumes:
+      - name: loki-data
+        emptyDir: {}
+
+    volumeMounts:
+      - name: loki-data
+        mountPath: /var/loki
+        subPath: ""
+        readOnly: false
+
+  backend:
+    replicas: 2
+
+    podAnnotations:
+      config.linkerd.io/skip-inbound-ports: "9095"
+      config.linkerd.io/skip-outbound-ports: "9095"
+
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 60
+      targetMemoryUtilizationPercentage: 80
+
+    persistence:
+      volumeClaimsEnabled: false
+      size: 5Gi
+      storageClassName: "gp3"
+
+    volumes:
+      - name: loki-data
+        emptyDir: {}
+
+    volumeMounts:
+      - name: loki-data
+        mountPath: /var/loki
+        subPath: ""
+        readOnly: false
+
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: observability
+              operator: In
+              values: ["true"]
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "256Mi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "256Mi"
+
+  # -- Configuration for the minio subchart
+  minio:
+    enabled: true
+    metrics:
+      serviceMonitor:
+        enabled: true
+
+    replicas: 1
+    # For single-node Kind cluster, we can use a single drive
+    drivesPerNode: 2
+    # Set mode to standalone since we're using a single replica
+    mode: standalone
+    # root user; not used for GEL authentication
+    # NOTE: This is the root user for the minio service
+    rootUser: root-user
+    # NOTE: This is the root password for the minio service
+    rootPassword: supersecretpassword
+    users: 
+      # NOTE: This is the user for the logs service
+      - accessKey: logs-user
+        secretKey: supersecretpassword
+        policy: readwrite
+    buckets:
+      # NOTE: This is the bucket for the chunks service
+      - name: chunks
+        policy: none
+        purge: false
+      # NOTE: This is the bucket for the ruler service
+      - name: ruler
+        policy: none
+        purge: false
+      # NOTE: This is the bucket for the admin service
+      - name: admin
+        policy: none
+        purge: false
+
+    persistence:
+      enabled: false
+      size: 10Gi
+      storageClassName: "gp3"
+
+    # resources:
+    #   requests:
+    #     cpu: 250m
+    #     memory: 20Gi
+    #   limits:
+    #     cpu: 500m
+    #     memory: 20Gi
+
+    # Add healthcheck configuration
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 120
+      periodSeconds: 20
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 120
+      periodSeconds: 20
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      
+  chunksCache:
+    # -- Specifies whether memcached based chunks-cache should be enabled
+    enabled: true
+    # -- Batchsize for sending and receiving chunks from chunks cache
+    batchSize: 4
+    # -- Parallel threads for sending and receiving chunks from chunks cache
+    parallelism: 5
+    # -- Memcached operation timeout
+    timeout: 2000ms
+    # -- Specify how long cached chunks should be stored in the chunks-cache before being expired
+    defaultValidity: 0s
+    # -- Total number of chunks-cache replicas
+    replicas: 1
+    # -- Port of the chunks-cache service
+    port: 11211
+    # -- Amount of memory allocated to chunks-cache for object storage (in MB).
+    allocatedMemory: 128
+    # -- Maximum item memory for chunks-cache (in MB).
+    maxItemMemory: 5
+    # -- Maximum number of connections allowed
+    connectionLimit: 100
+    # -- Max memory to use for cache write back
+    writebackSizeLimit: 50MB
+    # -- Max number of objects to use for cache write back
+    writebackBuffer: 500
+    # -- Number of parallel threads for cache write back
+    writebackParallelism: 1
+
+    # resources:
+    #   requests:
+    #     cpu: 150m
+    #     memory: 2Gi
+    #   limits:
+    #     cpu: 300m
+    #     memory: 2Gi
+
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: observability
+                  operator: In
+                  values: ["true"]
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+  resultsCache:
+    # -- Specifies whether memcached based results-cache should be enabled
+    enabled: true
+    # -- Specify how long cached results should be stored in the results-cache before being expired
+    defaultValidity: 12h
+    # -- Memcached operation timeout
+    timeout: 500ms
+    # -- Total number of results-cache replicas
+    replicas: 1
+    # -- Port of the results-cache service
+    port: 11211
+    # -- Amount of memory allocated to results-cache for object storage (in MB).
+    allocatedMemory: 128 # TODO: reduce cpu to 100m
+    # -- Maximum item results-cache for memcached (in MB).
+    maxItemMemory: 5
+    # -- Maximum number of connections allowed
+    connectionLimit: 100
+    # -- Max memory to use for cache write back
+    writebackSizeLimit: 50MB
+    # -- Max number of objects to use for cache write back
+    writebackBuffer: 500
+    # -- Number of parallel threads for cache write back
+    writebackParallelism: 1
+
+    # resources:
+    #   requests:
+    #     cpu: 150m
+    #     memory: 2048Mi
+    #   limits:
+    #     cpu: 300m
+    #     memory: 2048Mi
+
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: observability
+                  operator: In
+                  values: ["true"]
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+  ruler:
+    enabled: true
+
+    replicas: 1
+
+    # resources:
+    #   requests:
+    #     cpu: "100m"
+    #     memory: "256Mi"
+    #   limits:
+    #     cpu: "200m"
+    #     memory: "256Mi"
+
+    persistence:
+      volumeClaimsEnabled: true
+      size: 5Gi
+      storageClassName: "gp3"
+
+    tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+    # NOTE: This is the alertmanager url for the kube-prometheus-stack
+    alertmanager_url: http://kube-prometheus-stack-alertmanager.prometheus.svc.cluster.local:9093
+
+    # NOTE: This is the remote_write url for the kube-prometheus-stack
+    remote_write:
+      - url: http://kube-prometheus-stack-alertmanager.prometheus.svc.cluster.local:9093/api/v1/write

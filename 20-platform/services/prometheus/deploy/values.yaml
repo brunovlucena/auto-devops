@@ -1,0 +1,373 @@
+kube-prometheus-stack:
+  defaultRules:
+    rules:
+      etcd: false
+      kubeApiserverAvailability: false
+      kubeApiserverBurnrate: false
+      kubeApiserverHistogram: false
+      kubeApiserverSlos: false
+      kubeControllerManager: false
+      kubeSchedulerAlerting: false
+      kubeSchedulerRecording: false
+      kubeKubelet: false
+
+  # Alertmanager
+  alertmanager:
+    enabled: true
+
+    replicas: 1
+
+    config:
+      global:
+        resolve_timeout: 5m
+
+      templates:
+        - '/etc/alertmanager/config/*.tmpl'
+    
+    templateFiles:
+        template_1.tmpl: |-
+            {{ define "__alert_silence_link" -}}
+                {{ .ExternalURL }}/#/silences/new?filter=%7B
+                {{- range .CommonLabels.SortedPairs -}}
+                    {{- if ne .Name "alertname" -}}
+                        {{- .Name }}%3D"{{- .Value -}}"%2C%20
+                    {{- end -}}
+                {{- end -}}
+            {{- end }}
+
+            {{ define "__alert_severity_prefix" -}}
+                {{ if ne .Status "firing" -}}
+                :lgtm:
+                {{- else if eq .Labels.severity "critical" -}}
+                :fire:
+                {{- else if eq .Labels.severity "warning" -}}
+                :warning:
+                {{- else -}}
+                :question:
+                {{- end }}
+            {{- end }}
+
+            {{ define "__alert_severity_prefix_title" -}}
+                {{ if ne .Status "firing" -}}
+                :lgtm:
+                {{- else if eq .CommonLabels.severity "critical" -}}
+                :fire:
+                {{- else if eq .CommonLabels.severity "warning" -}}
+                :warning:
+                {{- else if eq .CommonLabels.severity "info" -}}
+                :information_source:
+                {{- else -}}
+                :question:
+                {{- end }}
+            {{- end }}
+
+            {{/* First line of Slack alerts */}}
+            {{ define "slack.monzo.title" -}}
+                [{{ .Status | toUpper -}}
+                {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{- end -}}
+                ] {{ template "__alert_severity_prefix_title" . }} 
+                {{- if or (match ".*alloy.*" .CommonLabels.alertname) (match ".*loki.*" .CommonLabels.alertname) (match ".*prometheus.*" .CommonLabels.alertname) -}}
+                    Uptime Firing {{ .CommonLabels.alertname }}
+                {{- else -}}
+                    {{ .CommonLabels.alertname }}
+                {{- end -}}
+            {{- end }}
+
+            {{/* Color of Slack attachment (appears as line next to alert )*/}}
+            {{ define "slack.monzo.color" -}}
+                {{ if eq .Status "firing" -}}
+                    {{ if eq .CommonLabels.severity "warning" -}}
+                        warning
+                    {{- else if eq .CommonLabels.severity "critical" -}}
+                        danger
+                    {{- else -}}
+                        #439FE0
+                    {{- end -}}
+                {{ else -}}
+                good
+                {{- end }}
+            {{- end }}
+
+            {{/* Emoji to display as user icon (custom emoji supported!) */}}
+            {{ define "slack.monzo.icon_emoji" }}:prometheus:{{ end }}
+
+            {{/* The test to display in the alert */}}
+            {{ define "slack.monzo.text" -}}
+                {{ range .Alerts }}
+                    {{- if .Annotations.message }}
+                        {{ .Annotations.message }}
+                    {{- end }}
+                    {{- if .Annotations.description }}
+                        {{ .Annotations.description }}
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+
+            {{ define "slack.monzo.link_button_text" -}}
+                {{- if .CommonAnnotations.link_text -}}
+                    {{- .CommonAnnotations.link_text -}}
+                {{- else -}}
+                    Link
+                {{- end }} :l:
+            {{- end }}
+
+    serviceAccount:
+      create: true
+      name: alertmanager
+
+    service:
+      additionalPorts:
+      - name: oauth-proxy
+        port: 8081
+        targetPort: 8081
+      - name: oauth-metrics
+        port: 8082
+        targetPort: 8082
+
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: gp3
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: observability
+                    operator: In
+                    values: ["true"]
+
+      tolerations:
+        - key: "observability"
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+
+  # Grafana
+  grafana:
+
+    replicas: 1
+
+    service:
+      enabled: true
+      type: NodePort
+      nodePort: 30050
+
+    extraExposePorts:
+      - name: https
+        port: 443
+        targetPort: 3000
+
+    sidecar:
+      # Log level default for all sidecars. Can be one of: DEBUG, INFO, WARN, ERROR, CRITICAL. Defaults to INFO
+      logLevel: INFO
+      datasources:
+        # Log level. Can be one of: DEBUG, INFO, WARN, ERROR, CRITICAL.
+        logLevel: "INFO"
+        enabled: true
+        defaultDatasourceEnabled: false
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        labelValue: "1"
+        # Allow discovery in all namespaces for dashboards
+        searchNamespace: ALL
+        # Support for new table panels, when enabled grafana auto migrates the old table panels to newer table panels
+        enableNewTablePanelSyntax: true # NOTE: testing
+
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: observability
+                  operator: In
+                  values: ["true"]
+
+    tolerations:
+    - key: "observability"
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+
+    assertNoLeakedSecrets: false
+
+    additionalDataSources:
+      - name: prometheus-local
+        uid: prometheus-local
+        type: prometheus
+        orgId: 1
+        url: http://prometheus-kube-prometheus-prometheus.prometheus:9090
+        access: proxy
+        jsonData:
+          timeInterval: 30s # It should match prometheus scrape interval
+          exemplarTraceIdDestinations:
+          - name: trace_id
+            datasourceUid: tempo
+      # Alertmanager
+      - name: alertmanager
+        uid: alertmanager
+        type: alertmanager
+        orgId: 1
+        url: http://prometheus-kube-prometheus-stack-alertmanager.prometheus:9093
+        access: proxy
+        basicAuth: false
+        implementation: prometheus
+        handleGrafanaManagedAlerts: true
+        # TODO: Enable alerting forwarding in grafana
+      # Loki
+      - name: loki
+        uid: loki
+        type: loki
+        orgId: 1
+        access: proxy
+        url: http://loki-read.loki:3100
+        basicAuth: false
+        alerting:
+          enabled: true
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            # Field with internal link pointing to data source in Grafana.
+            # Right now, Grafana supports only Jaeger and Zipkin data sources as link targets.
+            # datasourceUid value can be anything, but it should be unique across all defined data source uids.
+            - datasourceUid: tempo
+              matcherRegex: "\"TraceId\":\"(\\w+)\""
+              name: TraceId
+              # url will be interpreted as query for the datasource
+              url: '$${__value.raw}'
+      # Tempo
+      - name: tempo
+        uid: tempo
+        type: tempo
+        orgId: 1
+        access: proxy
+        basicAuth: false
+        url: http://tempo-query-frontend.tempo:3100
+        jsonData:
+          tracesToLogsV2:
+            # Field with an internal link pointing to a logs data source in Grafana.
+            # datasourceUid value must match the uid value of the logs data source.
+            datasourceUid: 'loki'
+            spanStartTimeShift: '-30m'
+            spanEndTimeShift: '30m'
+            # Note: The variable only uses tags that are present in the span.
+            tags: ['app', 'pod','status_code', 'level']
+            filterByTraceID: false # TODO: try true
+            filterBySpanID: false # TODO: try true
+            customQuery: true
+            # Note: The double dollar signs are needed in my setup due to some YAML interpolation that's done when loading the ConfigMap and initializing Grafana
+            # More: https://grafana.com/docs/grafana/latest/datasources/tempo/
+            # query: '{app="$${__span.tags["service.name"]}", status_code="$${__span.tags["http.status_code"]}"} |~ `TraceId=$${__span.traceId}`'
+            query: '{app="$${__span.tags["service.name"]}"} |~ `"TraceId":"$${__span.traceId}"`'
+          tracesToMetrics:
+            datasourceUid: 'prometheus-local'
+            spanStartTimeShift: '-30m'
+            spanEndTimeShift: '30m'
+            tags: [{ key: 'service.name', value: 'service' }, { key: 'job' }]
+            queries:
+              - name: 'Sample query'
+                query: 'sum(rate(traces_spanmetrics_latency_bucket{$__tags}[5m]))'
+          serviceMap:
+            datasourceUid: 'prometheus-local'
+          nodeGraph:
+            enabled: true
+          search:
+            hide: false
+          lokiSearch:
+            datasourceUid: 'loki'
+          traceQuery:
+            timeShiftEnabled: true
+            spanStartTimeShift: '-1h'
+            spanEndTimeShift: '1h'
+          spanBar:
+            type: 'Tag'
+            tag: 'http.path'
+            hide: false
+
+  # Prometheus
+  prometheus:
+    serviceMonitor:
+      selfMonitor: true
+
+    externalLabels:
+      environment: local
+
+    service:
+      additionalPorts:
+      - name: oauth-proxy
+        port: 8081
+        targetPort: 8081
+      - name: oauth-metrics
+        port: 8082
+        targetPort: 8082
+
+    serviceAccount:
+      create: true
+      name: prometheus
+
+    prometheusSpec:
+      logLevel: error
+      logFormat: json
+
+      replicas: 1
+
+      retention: 10d
+
+      ruleSelector: {}
+      hostNetwork: true
+
+      enableRemoteWriteReceiver: true
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: observability
+                    operator: In
+                    values: ["true"]
+
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: security
+                  operator: In
+                  values:
+                  - S2
+              topologyKey: kubernetes.io/hostname
+
+      tolerations:
+      - key: "observability"
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
+
+      # Scrape all namespaces
+      serviceMonitorSelectorNilUsesHelmValues: false
+
+      # Enable Exemplar and Remote storage for Opentelemetry
+      enableFeatures:
+        - exemplar-storage
+        - remote-write
+
+      # Enable/Disable Grafana dashboards provisioning for prometheus remote write feature
+      remoteWriteDashboards: false
+
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: gp3
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi

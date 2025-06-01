@@ -1,0 +1,70 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rabbitmq-operator  
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "rabbitmq-operator-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "rabbitmq-operator-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "rabbitmq-operator-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "rabbitmq-operator-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "rabbitmq-operator-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rabbitmq-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+  source:
+    repoURL: git@github.com:notifi-network/infra.git
+    path: 20-platform/services/rabbitmq-operator/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: rabbitmq-operator
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rabbitmq-cluster  
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "rabbitmq-cluster-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "rabbitmq-cluster-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "rabbitmq-cluster-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "rabbitmq-cluster-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "rabbitmq-cluster-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rabbitmq-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+  source:
+    repoURL: git@github.com:notifi-network/infra.git
+    path: 20-platform/services/rabbitmq-cluster/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: rabbitmq-cluster
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml
