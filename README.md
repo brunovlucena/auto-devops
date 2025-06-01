@@ -166,6 +166,43 @@ Team Productivity Gains: $150,000 - $300,000
 
 ---
 
+## 🎮 **Experience Our AI Platform Live**
+
+### **Try Our Complete Solution Before You Buy**
+**🤖 AI Assistant Demo**: [jamie.lucena.cloud](https://jamie.lucena.cloud)  
+**📊 Monitoring Dashboard Demo**: [grafana.lucena.cloud](https://grafana.lucena.cloud)
+
+Experience the full power of our Auto-DevOps platform with live demonstrations:
+
+### **Jamie AI Assistant** - *[jamie.lucena.cloud](https://jamie.lucena.cloud)*
+- **Intelligent Q&A**: Ask complex infrastructure questions and get detailed responses
+- **Problem Solving**: Present real scenarios and see how Jamie diagnoses issues
+- **Best Practices**: Learn DevOps methodologies through interactive conversations
+- **Tool Guidance**: Get help with Kubernetes, monitoring, CI/CD, and more
+
+### **Grafana Monitoring** - *[grafana.lucena.cloud](https://grafana.lucena.cloud)*
+- **Real-time Dashboards**: See live infrastructure metrics and visualizations
+- **Alert Management**: Experience intelligent alerting and notification systems
+- **Performance Analytics**: Explore comprehensive system performance data
+- **Operational Insights**: Understand how Scarlet monitors and optimizes infrastructure
+
+### **Demo Features:**
+✅ **Real AI responses** - Experience actual Jamie capabilities  
+✅ **Live monitoring data** - See real infrastructure dashboards  
+✅ **No registration required** - Start exploring immediately  
+✅ **Safe environment** - Test without affecting your infrastructure  
+✅ **Representative scenarios** - See how our platform handles your typical challenges  
+
+### **Perfect For:**
+- **Technical teams** evaluating AI assistance and monitoring capabilities
+- **Managers** assessing potential productivity and visibility gains
+- **Decision makers** understanding the technology firsthand
+- **Engineers** exploring AI-powered problem solving and observability
+
+*Experience both Jamie and our monitoring platform to see how AI can transform your entire DevOps workflow.*
+
+---
+
 ## 🚀 **Get Started Today**
 
 ### **Free Assessment** *(No Obligation)*
