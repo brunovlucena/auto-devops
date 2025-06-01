@@ -1,10 +1,10 @@
 """
 🧠 Jamie's AI Components Package
 
-Sprint 2: AI Brain & Vector Memory System
+Sprint 6: Enhanced AI Brain with MongoDB RAG System
 """
 
 from .brain import JamieBrain
-from .memory import VectorMemory
+from .rag_memory import MongoRAGMemory, RAGDocument, OllamaEmbeddings
 
-__all__ = ["JamieBrain", "VectorMemory"] 
+__all__ = ["JamieBrain", "MongoRAGMemory", "RAGDocument", "OllamaEmbeddings"] 

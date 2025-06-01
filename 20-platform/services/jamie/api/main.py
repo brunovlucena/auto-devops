@@ -19,7 +19,7 @@ from .personality import JamiePersonality
 from .models.conversation import ConversationManager
 from .tools.mcp_client import MCPClient
 from .ai.brain import JamieBrain
-from .ai.memory import VectorMemory
+from .ai.rag_memory import MongoRAGMemory
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,8 +47,8 @@ conversation_manager = ConversationManager()
 mcp_client = MCPClient()
 
 # Sprint 2: Initialize AI components
-ai_brain = None
-vector_memory = None
+ai_brain = JamieBrain()  # This now includes RAG memory
+rag_memory = None  # Will be set to ai_brain.rag_memory after initialization
 
 # Request/Response models
 class ChatMessage(BaseModel):
@@ -92,32 +92,21 @@ manager = ConnectionManager()
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize Jamie's systems on startup"""
-    logger.info("🚀 Starting Jamie AI DevOps Copilot - Sprint 3!")
+    """Initialize Jamie's AI components on startup"""
+    global rag_memory
     
-    try:
-        # Initialize MCP client and connect to DevOps tools
-        logger.info("🔌 Initializing MCP connections...")
-        await mcp_client.connect_to_servers()
-        
-        # Initialize AI systems
-        logger.info("🧠 Initializing AI brain...")
-        await ai_brain.initialize()
-        
-        # Initialize memory systems
-        logger.info("🎯 Initializing vector memory...")
-        vector_memory.initialize_memory()
-        
-        logger.info("✅ Jamie is fully operational and ready to help with DevOps!")
-        logger.info("   💬 Chat endpoints: /chat, /ws/{user_id}")
-        logger.info("   🔍 MCP status: /mcp/status")
-        logger.info("   📊 Cluster status: /devops/cluster/status")
-        logger.info("   🚨 Recent errors: /devops/errors/recent")
-        
-    except Exception as e:
-        logger.error(f"❌ Startup error: {str(e)}")
-        # Continue startup even if some systems fail
-        logger.warning("⚠️ Some systems may not be fully operational")
+    logger.info("🚀 Starting Jamie AI DevOps Copilot...")
+    
+    # Initialize AI brain with RAG capabilities
+    brain_initialized = await ai_brain.initialize()
+    if brain_initialized:
+        logger.info("✅ Jamie's enhanced AI brain is ready!")
+        # Set the rag_memory reference for backward compatibility
+        rag_memory = ai_brain.rag_memory
+    else:
+        logger.warning("⚠️ Jamie's AI brain initialization failed - running in limited mode")
+    
+    logger.info("🤖 Jamie is ready to help with your DevOps challenges!")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -143,9 +132,9 @@ async def root():
     """Health check endpoint with Jamie's personality and AI status"""
     ai_status = {
         "brain_active": ai_brain is not None and ai_brain.is_available(),
-        "vector_memory_active": vector_memory is not None and vector_memory.is_available(),
+        "vector_memory_active": rag_memory is not None and rag_memory.is_available(),
         "llm_model": ai_brain.get_model_info() if ai_brain else "Not available",
-        "memory_collections": vector_memory.get_collection_count() if vector_memory else 0
+        "memory_collections": rag_memory.get_collection_count() if rag_memory else 0
     }
     
     greeting = jamie_personality.get_time_appropriate_greeting()
@@ -166,7 +155,7 @@ async def health_check():
     """Detailed health check with AI component status"""
     ai_status = {
         "brain_active": ai_brain is not None and ai_brain.is_available(),
-        "vector_memory_active": vector_memory is not None and vector_memory.is_available(),
+        "vector_memory_active": rag_memory is not None and rag_memory.is_available(),
         "mcp_servers": mcp_client.get_server_status(),
         "personality_loaded": True,
         "conversation_manager_active": True
@@ -221,8 +210,8 @@ async def chat_endpoint(chat_message: ChatMessage):
         )
         
         # Store in vector memory for future learning
-        if vector_memory:
-            await vector_memory.store_interaction(
+        if rag_memory:
+            await rag_memory.store_interaction(
                 user_message=chat_message.message,
                 jamie_response=response_data["response"],
                 context=chat_message.context or {},
@@ -296,7 +285,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 
 async def generate_ai_response(message: str, user_id: str, session_id: str, context: Optional[Dict] = None) -> Dict[str, Any]:
     """
-    Generate Jamie's AI-powered response with enhanced understanding
+    Generate Jamie's RAG-enhanced AI response
     """
     try:
         # Get conversation context and history
@@ -306,19 +295,13 @@ async def generate_ai_response(message: str, user_id: str, session_id: str, cont
         # Detect user intent with enhanced AI
         intent_data = conversation_manager.detect_user_intent(message, session_id)
         
-        # Get relevant memories from vector store
-        relevant_memories = []
-        if vector_memory:
-            relevant_memories = await vector_memory.search_similar_interactions(message, limit=3)
-        
-        # Generate response using AI brain if available
+        # Generate response using enhanced AI brain with RAG
         if ai_brain and ai_brain.is_available():
             response_data = await ai_brain.generate_response(
                 user_message=message,
                 conversation_history=recent_history,
                 intent=intent_data,
-                relevant_memories=relevant_memories,
-                devops_context=context,
+                devops_context={**context, "session_id": session_id} if context else {"session_id": session_id},
                 personality=jamie_personality
             )
         else:
@@ -333,7 +316,8 @@ async def generate_ai_response(message: str, user_id: str, session_id: str, cont
             "response": jamie_personality.get_error_response() + " Give me a moment to sort myself out!",
             "confidence": 0.3,
             "intent": "error",
-            "topics": []
+            "topics": [],
+            "timestamp": datetime.now().isoformat()
         }
 
 async def generate_basic_response(message: str, intent_data: Dict, context: Dict) -> Dict[str, Any]:
@@ -398,22 +382,107 @@ async def handle_github_query(message: str, context: Dict) -> str:
 # New AI endpoints for Sprint 2
 @app.get("/ai/status")
 async def ai_status():
-    """Get detailed AI system status"""
-    status = {
-        "brain": ai_brain.get_health_status() if ai_brain else {"available": False},
-        "memory": vector_memory.get_status() if vector_memory else {"available": False},
-        "personality": jamie_personality.generate_personality_metadata()
-    }
-    return status
+    """Get comprehensive AI system status including RAG"""
+    try:
+        brain_status = ai_brain.get_health_status() if ai_brain else {"available": False}
+        
+        # Get RAG-specific status
+        rag_status = {}
+        if ai_brain and ai_brain.rag_available:
+            rag_status = await ai_brain.rag_memory.get_status()
+        
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "brain": brain_status,
+            "rag_memory": rag_status,
+            "personality": {
+                "version": "2.0",
+                "character_traits": {
+                    "nationality": "British",
+                    "personality": "Friendly, helpful, enthusiastic",
+                    "expertise": "DevOps, Kubernetes, Monitoring"
+                }
+            },
+            "features": {
+                "knowledge_base": ai_brain.rag_available if ai_brain else False,
+                "conversation_memory": ai_brain.rag_available if ai_brain else False,
+                "vector_search": ai_brain.rag_available if ai_brain else False,
+                "llm_generation": ai_brain.model_available if ai_brain else False,
+                "personality_enhanced": True
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting AI status: {str(e)}")
+        return {"error": str(e), "timestamp": datetime.now().isoformat()}
 
-@app.post("/ai/learn")
-async def learn_from_feedback(feedback_data: Dict[str, Any]):
-    """Allow Jamie to learn from user feedback"""
-    if ai_brain and vector_memory:
-        await ai_brain.learn_from_feedback(feedback_data)
-        return {"message": jamie_personality.get_success_response() + " Thanks for the feedback, mate! I'll learn from that."}
-    else:
-        return {"message": jamie_personality.get_error_response() + " My learning systems aren't available right now."}
+@app.post("/ai/knowledge")
+async def add_knowledge(
+    title: str,
+    content: str,
+    category: str,
+    doc_type: str = "knowledge",
+    tags: Optional[List[str]] = None,
+    source_url: Optional[str] = None
+):
+    """Add new knowledge to Jamie's RAG system"""
+    try:
+        if not ai_brain or not ai_brain.rag_available:
+            return {"error": "RAG system not available", "success": False}
+        
+        doc_id = await ai_brain.add_knowledge(
+            title=title,
+            content=content,
+            category=category,
+            doc_type=doc_type,
+            tags=tags,
+            source_url=source_url
+        )
+        
+        if doc_id:
+            return {
+                "success": True,
+                "document_id": doc_id,
+                "message": f"Added knowledge: {title}"
+            }
+        else:
+            return {"success": False, "error": "Failed to store knowledge"}
+            
+    except Exception as e:
+        logger.error(f"Error adding knowledge: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/ai/search")
+async def search_knowledge(
+    query: str,
+    categories: Optional[str] = None,
+    limit: int = 5
+):
+    """Search Jamie's knowledge base"""
+    try:
+        if not ai_brain or not ai_brain.rag_available:
+            return {"error": "RAG system not available", "results": []}
+        
+        # Parse categories if provided
+        category_list = None
+        if categories:
+            category_list = [cat.strip() for cat in categories.split(",")]
+        
+        results = await ai_brain.search_knowledge(
+            query=query,
+            categories=category_list,
+            limit=limit
+        )
+        
+        return {
+            "query": query,
+            "results": results,
+            "total_found": len(results)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error searching knowledge: {str(e)}")
+        return {"error": str(e), "results": []}
 
 # MCP Integration Endpoints
 @app.get("/mcp/status")

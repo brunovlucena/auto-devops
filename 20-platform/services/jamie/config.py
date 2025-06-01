@@ -37,6 +37,12 @@ class JamieConfig:
     MONGODB_URL: Optional[str] = os.getenv("JAMIE_MONGODB_URL")
     REDIS_URL: Optional[str] = os.getenv("JAMIE_REDIS_URL")
     
+    # RAG Memory Configuration
+    RAG_DATABASE_NAME: str = os.getenv("JAMIE_RAG_DATABASE", "jamie_rag")
+    RAG_MAX_DOCUMENTS: int = int(os.getenv("JAMIE_RAG_MAX_DOCUMENTS", "50000"))
+    RAG_SIMILARITY_THRESHOLD: float = float(os.getenv("JAMIE_RAG_SIMILARITY_THRESHOLD", "0.3"))
+    RAG_CONTEXT_LENGTH: int = int(os.getenv("JAMIE_RAG_CONTEXT_LENGTH", "4000"))
+    
     # Development Configuration
     DEBUG: bool = os.getenv("JAMIE_DEBUG", "false").lower() == "true"
     RELOAD: bool = os.getenv("JAMIE_RELOAD", "false").lower() == "true"
