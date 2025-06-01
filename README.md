@@ -175,9 +175,9 @@ Team Productivity Gains: $150,000 - $300,000
 4. **Proof of Concept**: Optional 2-week pilot program
 
 ### **Contact Information**
-- 📧 **Email**: [your-email@company.com]
-- 📞 **Phone**: [your-phone-number]
-- 🌐 **Website**: [your-website.com]
+- 📧 **Email**: [bruno@lucena.cloud]
+- 📞 **Phone**: [55-81991319220]
+- 🌐 **Website**: [chat.lucena.cloud]
 - 📅 **Schedule Consultation**: [calendar-link]
 
 ---
