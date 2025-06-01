@@ -3,8 +3,28 @@
 🔔 Jamie AI DevOps Copilot - Slack Notifications
 Sprint 5: Slack Integration
 
-Automated notification system for team alerts, incident management,
-and proactive DevOps insights delivered to Slack channels.
+=== WHAT THIS FILE DOES ===
+Jamie's smart notification system - the nervous system of your DevOps team!
+- 🚨 Alert Notifications: Critical system issues sent to right channels
+- 🏥 Incident Management: Coordinate war rooms and status updates
+- 🚀 Deployment Notifications: Success/failure updates with details
+- 📊 Scheduled Reports: Daily/weekly summaries of system health
+- 🔮 Proactive Insights: "Your CPU is trending up, heads up!"
+
+=== KEY CONCEPTS ===
+1. Severity Routing: Critical → #alerts, Info → #general
+2. Rate Limiting: Don't spam channels with duplicate notifications
+3. Threading: Keep incident updates in threads (organization!)
+4. User Preferences: Respect each person's notification settings
+5. British Personality: Even alerts are charming! 🇬🇧
+
+=== NOTIFICATION FLOW ===
+Event Occurs → Check Severity → Check Rate Limits → Route to Channels → Format Message → Send!
+
+=== EXAMPLES ===
+- Alert: "🚨 CPU > 90% on node-1" → Formats → Sends to #alerts + #devops
+- Incident: "🏥 Database down" → Creates war room → Threads updates
+- Deploy: "✅ frontend-v2.1.0 deployed" → Celebrates success!
 """
 
 import asyncio
@@ -29,15 +49,40 @@ from .slack_utils import (
 
 logger = logging.getLogger(__name__)
 
+# ==========================================
+# 📊 NOTIFICATION ENUMS & TYPES
+# ==========================================
+
 class NotificationSeverity(Enum):
-    """Notification severity levels"""
+    """
+    🎯 Notification severity levels - determines routing and urgency
+    
+    CRITICAL: System down, data loss, security breach
+    WARNING: Performance degraded, approaching limits  
+    INFO: Deployments, maintenance, general updates
+    DEBUG: Development info, detailed troubleshooting
+    
+    💡 ADHD TIP: Clear severity helps brain filter what needs attention NOW
+    """
     CRITICAL = "critical"
-    WARNING = "warning"
+    WARNING = "warning"  
     INFO = "info"
     DEBUG = "debug"
 
 class NotificationType(Enum):
-    """Types of notifications Jamie can send"""
+    """
+    🎭 Types of notifications Jamie can send
+    
+    Each type has different formatting, routing, and behavior:
+    - ALERT: Real-time system issues
+    - INCIDENT: Coordinated response to outages
+    - DEPLOYMENT: Code release updates
+    - HEALTH_CHECK: Scheduled system health reports
+    - PERFORMANCE: Metrics and optimization insights
+    - SECURITY: Vulnerability and compliance alerts
+    - MAINTENANCE: Planned work announcements
+    - SUMMARY: Daily/weekly rollup reports
+    """
     ALERT = "alert"
     INCIDENT = "incident"
     DEPLOYMENT = "deployment"
@@ -47,23 +92,47 @@ class NotificationType(Enum):
     MAINTENANCE = "maintenance"
     SUMMARY = "summary"
 
+# ==========================================
+# 🤖 MAIN NOTIFICATION MANAGER
+# ==========================================
+
 class JamieNotificationManager:
     """
-    Manages all Slack notifications for Jamie AI DevOps Copilot
+    🎯 Manages all Slack notifications for Jamie AI DevOps Copilot
     
-    Features:
+    ✨ SMART FEATURES:
     - Real-time alerts and incident notifications
-    - Scheduled reports and summaries
+    - Scheduled reports and summaries  
     - User preference-based filtering
     - Channel-specific routing
     - Rate limiting and de-duplication
+    - Threading for related messages
+    - British personality in all notifications
+    
+    🧠 HOW IT WORKS:
+    1. Receives notification request (alert, incident, etc.)
+    2. Checks severity and user preferences
+    3. Applies rate limiting (don't spam!)
+    4. Routes to appropriate channels
+    5. Formats message with Jamie's personality
+    6. Sends and tracks for threading/updates
+    
+    💡 ADHD TIP: Think of this as Jamie's mouth - it knows when to speak and how loud!
     """
     
     def __init__(self, slack_client: AsyncWebClient):
+        """
+        🚀 Initialize notification manager
+        
+        WHAT WE TRACK:
+        - notification_queue: Messages waiting to be sent
+        - sent_notifications: Recent messages (for de-duplication)
+        - rate_limits: Per-channel send limits (prevent spam)
+        """
         self.client = slack_client
-        self.notification_queue: List[Dict] = []
-        self.sent_notifications: Dict[str, datetime] = {}  # For de-duplication
-        self.rate_limits: Dict[str, List[datetime]] = {}   # Rate limiting per channel
+        self.notification_queue: List[Dict] = []                    # Pending notifications
+        self.sent_notifications: Dict[str, datetime] = {}           # De-duplication tracking
+        self.rate_limits: Dict[str, List[datetime]] = {}            # Per-channel rate limiting
         
     async def send_alert_notification(
         self, 
@@ -71,30 +140,52 @@ class JamieNotificationManager:
         channels: List[str],
         severity: NotificationSeverity = NotificationSeverity.WARNING
     ) -> bool:
-        """Send alert notification to specified channels"""
+        """
+        🚨 Send alert notification to specified channels
+        
+        🎯 PURPOSE: Notify team of system issues in real-time
+        
+        FLOW:
+        1. Build context (who, what, when, where)
+        2. Create beautiful alert blocks  
+        3. Check rate limits for each channel
+        4. Send to appropriate channels
+        5. Track sent messages
+        
+        EXAMPLES:
+        - CPU alert → Formats with usage bars → Sends to #alerts
+        - Disk full → Shows usage + actions → Routes by severity
+        - Service down → Creates incident-style alert
+        
+        💡 ADHD TIP: Alerts are urgent - they interrupt current focus appropriately
+        """
         
         try:
-            # Build notification context
+            # ===== BUILD NOTIFICATION CONTEXT =====
+            # Add metadata about this alert
             context = build_notification_context("alert", alert_data)
             
-            # Create alert blocks
+            # ===== CREATE BEAUTIFUL ALERT BLOCKS =====
+            # Turn raw alert data into visual Slack message
             blocks = await self._build_alert_blocks(alert_data, context)
             
-            # Send to each channel
+            # ===== SEND TO EACH CHANNEL =====
+            # Route alert to appropriate team channels
             success_count = 0
             for channel in channels:
                 if await self._can_send_to_channel(channel, severity):
                     try:
                         await self.client.chat_postMessage(
                             channel=channel,
-                            text=f"🚨 Alert: {alert_data.get('name', 'Unknown Alert')}",
-                            blocks=blocks,
-                            username="Jamie AI",
-                            icon_emoji=":robot_face:"
+                            text=f"🚨 Alert: {alert_data.get('name', 'Unknown Alert')}",  # Fallback text
+                            blocks=blocks,                     # Rich formatting
+                            username="Jamie AI",              # Bot display name
+                            icon_emoji=":robot_face:"         # Jamie's avatar
                         )
                         success_count += 1
                         
-                        # Update rate limiting
+                        # ===== UPDATE RATE LIMITING =====
+                        # Track this send to prevent spam
                         await self._update_rate_limit(channel)
                         
                     except SlackApiError as e:
@@ -112,15 +203,34 @@ class JamieNotificationManager:
         channels: List[str],
         update_type: str = "new"  # new, update, resolved
     ) -> bool:
-        """Send incident notification with proper escalation"""
+        """
+        🏥 Send incident notification with proper escalation
+        
+        🎯 PURPOSE: Coordinate team response to major outages/issues
+        
+        INCIDENT LIFECYCLE:
+        1. NEW: "🚨 Database is down! War room: #incident-db-001"
+        2. UPDATE: "🔄 Still working on database. ETA: 15 minutes"  
+        3. RESOLVED: "✅ Database restored! Post-mortem tomorrow."
+        
+        SPECIAL FEATURES:
+        - Creates war room channels for coordination
+        - Uses message threading for updates
+        - Escalates to critical severity
+        - Links to runbooks and documentation
+        
+        💡 ADHD TIP: Incidents need clear status - is this new, ongoing, or fixed?
+        """
         
         try:
-            severity = NotificationSeverity.CRITICAL
+            severity = NotificationSeverity.CRITICAL  # Incidents are always critical
             
-            # Create incident-specific blocks
+            # ===== CREATE INCIDENT BLOCKS =====
+            # Format incident with status, actions, links
             blocks = await self._build_incident_blocks(incident_data, update_type)
             
-            # Add incident war room link if available
+            # ===== ADD WAR ROOM LINK =====
+            # Show where team is coordinating response
             if incident_data.get("war_room_channel"):
                 blocks.append({
                     "type": "section",
@@ -130,12 +240,13 @@ class JamieNotificationManager:
                     }
                 })
             
-            # Send notifications
+            # ===== SEND NOTIFICATIONS =====
             success_count = 0
             for channel in channels:
                 if await self._can_send_to_channel(channel, severity):
                     try:
-                        # Use thread for updates to existing incidents
+                        # ===== THREAD UPDATES TO ORIGINAL MESSAGE =====
+                        # Keep incident updates organized in threads
                         thread_ts = None
                         if update_type != "new" and incident_data.get("original_message_ts"):
                             thread_ts = incident_data["original_message_ts"]
@@ -144,12 +255,13 @@ class JamieNotificationManager:
                             channel=channel,
                             text=f"🚨 Incident {update_type.title()}: {incident_data.get('title', 'Unknown Incident')}",
                             blocks=blocks,
-                            thread_ts=thread_ts,
+                            thread_ts=thread_ts,              # Thread follow-ups
                             username="Jamie AI",
-                            icon_emoji=":rotating_light:"
+                            icon_emoji=":rotating_light:"     # Emergency light for incidents
                         )
                         
-                        # Store message timestamp for threading
+                        # ===== STORE MESSAGE FOR THREADING =====
+                        # Remember this message for future updates
                         if update_type == "new":
                             incident_data["original_message_ts"] = response["ts"]
                         
@@ -169,19 +281,43 @@ class JamieNotificationManager:
         deployment_data: Dict[str, Any],
         channels: List[str]
     ) -> bool:
-        """Send deployment status notification"""
+        """
+        🚀 Send deployment status notification
+        
+        🎯 PURPOSE: Keep team informed about code releases
+        
+        DEPLOYMENT STATUS TYPES:
+        - SUCCESS: "✅ frontend-v2.1.0 deployed successfully!"
+        - FAILED: "❌ backend-v1.2.3 deployment failed (rollback initiated)"
+        - IN_PROGRESS: "🔄 Deploying user-service-v3.0.0..."
+        - ROLLED_BACK: "⏪ Rolled back to api-v2.1.1 (previous stable)"
+        
+        INCLUDES:
+        - Service name and version
+        - Git commit hash and author
+        - Deployment duration
+        - Health check results
+        - Quick action buttons
+        
+        💡 ADHD TIP: Deployment notifications help track "what changed when"
+        """
         
         try:
+            # ===== CREATE DEPLOYMENT BLOCKS =====
+            # Format deployment info with status, timing, actions
             blocks = await self._build_deployment_blocks(deployment_data)
             
+            # ===== STATUS EMOJI MAPPING =====
+            # Visual indicators for different outcomes
             status = deployment_data.get("status", "unknown")
             emoji = {
-                "success": "✅",
-                "failed": "❌", 
-                "in_progress": "🔄",
-                "rolled_back": "⏪"
-            }.get(status, "📦")
+                "success": "✅",        # Green check for success
+                "failed": "❌",         # Red X for failures
+                "in_progress": "🔄",    # Spinning arrow for ongoing
+                "rolled_back": "⏪"     # Rewind for rollbacks
+            }.get(status, "📦")        # Package for unknown
             
+            # ===== SEND TO CHANNELS =====
             success_count = 0
             for channel in channels:
                 try:
@@ -190,7 +326,7 @@ class JamieNotificationManager:
                         text=f"{emoji} Deployment {status}: {deployment_data.get('service', 'Unknown Service')}",
                         blocks=blocks,
                         username="Jamie AI",
-                        icon_emoji=":rocket:"
+                        icon_emoji=":rocket:"          # Rocket for deployments
                     )
                     success_count += 1
                     
@@ -273,61 +409,89 @@ class JamieNotificationManager:
             return False
     
     async def _build_alert_blocks(self, alert_data: Dict[str, Any], context: Dict[str, Any]) -> List[Dict]:
-        """Build Slack blocks for alert notifications"""
+        """
+        🎨 Build beautiful Slack blocks for alerts
         
+        🎯 PURPOSE: Turn raw alert data into visual, actionable Slack message
+        
+        VISUAL STRUCTURE:
+        ┌─────────────────────────────────┐
+        │ 🚨 High CPU Usage Alert         │
+        │ Node: production-worker-02      │
+        │ Current: 🔥🔥🔥🔥🔥🔥🔥🔥🔥⬜ 92% │
+        │ Threshold: 80%                  │
+        │ Duration: 15 minutes            │
+        │ [🔍 Investigate] [📊 Metrics]   │
+        └─────────────────────────────────┘
+        
+        💡 ADHD TIP: Visual blocks make alerts scannable - key info jumps out
+        """
+        
+        # ===== ALERT HEADER =====
+        alert_name = alert_data.get("name", "System Alert")
         severity = alert_data.get("severity", "warning")
-        severity_emoji = {
+        
+        # Severity emoji mapping
+        severity_emojis = {
             "critical": "🔥",
             "warning": "⚠️", 
             "info": "ℹ️"
-        }.get(severity, "⚠️")
+        }
         
         blocks = [
             {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": f"{severity_emoji} Alert: {alert_data.get('name', 'Unknown Alert')}"
-                }
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Status:* {alert_data.get('status', 'Firing')} | *Severity:* {severity.title()}\n*Description:* {alert_data.get('description', 'No description available')}"
+                    "text": f"{severity_emojis.get(severity, '⚠️')} {alert_name}"
                 }
             }
         ]
         
-        # Add affected services/components
-        if alert_data.get("affected_services"):
-            services_text = ", ".join(alert_data["affected_services"])
+        # ===== ALERT DETAILS =====
+        # Show key information in a scannable format
+        details_text = f"*🎯 Target:* {alert_data.get('target', 'Unknown')}\n"
+        
+        if alert_data.get("current_value"):
+            details_text += f"*📊 Current:* {alert_data['current_value']}\n"
+        
+        if alert_data.get("threshold"):
+            details_text += f"*🚧 Threshold:* {alert_data['threshold']}\n"
+        
+        if alert_data.get("duration"):
+            details_text += f"*⏱️ Duration:* {alert_data['duration']}\n"
+        
+        # Add Jamie's British commentary
+        if severity == "critical":
+            details_text += f"\n🇬🇧 *Blimey!* This needs immediate attention, mate!"
+        elif severity == "warning":
+            details_text += f"\n🇬🇧 *Right then,* best have a look at this."
+        
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": details_text
+            }
+        })
+        
+        # ===== VISUAL USAGE BAR (if applicable) =====
+        # Show percentage alerts with visual bars
+        if alert_data.get("percentage"):
+            from .slack_formatters import create_usage_bar
+            usage_bar = create_usage_bar(alert_data["percentage"])
+            
             blocks.append({
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*Affected Services:* {services_text}"
+                    "text": f"*📈 Usage:* {usage_bar} {alert_data['percentage']:.1f}%"
                 }
             })
         
-        # Add metric values if available
-        if alert_data.get("current_value"):
-            blocks.append({
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Current Value:*\n{alert_data['current_value']}"
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Threshold:*\n{alert_data.get('threshold', 'N/A')}"
-                    }
-                ]
-            })
-        
-        # Add action buttons
-        buttons = [
+        # ===== ACTION BUTTONS =====
+        # Give team quick actions to take
+        action_elements = [
             {
                 "type": "button",
                 "text": {"type": "plain_text", "text": "🔍 Investigate"},
@@ -335,22 +499,40 @@ class JamieNotificationManager:
                 "style": "primary"
             },
             {
-                "type": "button",
-                "text": {"type": "plain_text", "text": "🔇 Acknowledge"},
-                "action_id": f"ack_alert_{alert_data.get('id', 'unknown')}"
+                "type": "button", 
+                "text": {"type": "plain_text", "text": "📊 View Metrics"},
+                "action_id": f"view_metrics_{alert_data.get('target', 'unknown')}"
             }
         ]
         
-        if alert_data.get("runbook_url"):
-            buttons.append({
+        # Add acknowledge button for critical alerts
+        if severity == "critical":
+            action_elements.append({
                 "type": "button",
-                "text": {"type": "plain_text", "text": "📖 Runbook"},
-                "url": alert_data["runbook_url"]
+                "text": {"type": "plain_text", "text": "✅ Acknowledge"},
+                "action_id": f"ack_alert_{alert_data.get('id', 'unknown')}",
+                "style": "danger"
             })
         
         blocks.append({
             "type": "actions",
-            "elements": buttons
+            "elements": action_elements
+        })
+        
+        # ===== FOOTER WITH TIMESTAMP =====
+        # When did this happen?
+        timestamp = alert_data.get("timestamp", datetime.now())
+        if isinstance(timestamp, str):
+            timestamp = datetime.fromisoformat(timestamp)
+            
+        blocks.append({
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"🕐 Alert triggered at {timestamp.strftime('%H:%M:%S')} | Powered by Jamie AI 🤖"
+                }
+            ]
         })
         
         return blocks

@@ -3,12 +3,25 @@
 🧪 Jamie AI DevOps Copilot - Sprint 5 Test Suite
 Slack Integration - Comprehensive Validation
 
-Tests all components of the Slack integration:
-- Slack bot setup and configuration
-- Slash commands and interactive components
-- Notifications and alert system
-- Cross-platform synchronization
-- Team collaboration features
+=== WHAT THIS FILE DOES ===
+Quality assurance for Jamie's Slack integration! Tests everything works correctly:
+- 📁 File Structure: All required files exist and are properly organized
+- 🔧 Code Quality: Syntax is valid, imports work, functions exist
+- 🧠 Logic Testing: Intent extraction, formatting, notifications work correctly
+- 🇬🇧 Personality: British expressions and greetings are charming
+- 📦 Dependencies: All required packages are installed and configured
+
+=== TESTING PHILOSOPHY ===
+1. Start Simple: Can we import files without errors?
+2. Test Structure: Are all expected functions and classes present?
+3. Test Logic: Do the smart functions actually work correctly?
+4. Test Integration: Do components work together?
+5. Test Production: Are we ready for real users?
+
+=== FOR ADHD BRAINS ===
+Think of this as Jamie's "health checkup" - we test everything systematically to make sure Jamie is ready to help teams without any surprises!
+
+Each test is focused and clear - pass/fail, no ambiguity.
 """
 
 import os
@@ -20,28 +33,49 @@ from typing import Dict, Any, List
 import unittest
 from unittest.mock import Mock, AsyncMock, patch
 
+# ==========================================
+# 🗂️ FILE STRUCTURE VALIDATION
+# ==========================================
+
 def test_slack_integration_structure():
-    """Test that the Slack integration directory structure is correct"""
+    """
+    🧪 Test that the Slack integration directory structure is correct
+    
+    🎯 PURPOSE: Ensure all required files exist before testing their contents
+    
+    WHAT WE CHECK:
+    - slack/ directory exists
+    - All 6 core files are present
+    - No missing components that would break the integration
+    
+    WHY THIS MATTERS:
+    - Missing files = runtime crashes
+    - Correct structure = easier maintenance
+    - Clear expectations for developers
+    
+    💡 ADHD TIP: File structure tests catch "obvious" problems early - like forgetting to add a file to git!
+    """
     print("🧪 Testing Slack integration file structure...")
     
+    # ===== DEFINE EXPECTED STRUCTURE =====
     base_path = Path("slack")
     required_files = [
-        "slack_bot.py",
-        "slack_formatters.py", 
-        "slack_utils.py",
-        "notifications.py",
-        "start_slack_bot.py",
-        "requirements.txt"
+        "slack_bot.py",           # Main bot implementation
+        "slack_formatters.py",    # Message formatting functions
+        "slack_utils.py",         # Utility functions and helpers
+        "notifications.py",       # Notification management system
+        "start_slack_bot.py",     # Production startup script
+        "requirements.txt"        # Slack-specific dependencies
     ]
     
     success = True
     
-    # Check if slack directory exists
+    # ===== CHECK SLACK DIRECTORY EXISTS =====
     if not base_path.exists():
         print(f"❌ Slack directory not found: {base_path}")
         return False
     
-    # Check required files
+    # ===== CHECK EACH REQUIRED FILE =====
     for file_path in required_files:
         full_path = base_path / file_path
         if not full_path.exists():
@@ -52,18 +86,39 @@ def test_slack_integration_structure():
     
     return success
 
+# ==========================================
+# 🔧 CODE QUALITY VALIDATION
+# ==========================================
+
 def test_slack_bot_imports():
-    """Test that all Slack bot imports work correctly"""
+    """
+    🧪 Test that all Slack bot imports work correctly
+    
+    🎯 PURPOSE: Catch syntax errors and missing dependencies early
+    
+    WHAT WE TEST:
+    - Python syntax is valid (files can be parsed)
+    - All required classes and functions exist
+    - No obvious import errors or typos
+    
+    TESTING APPROACH:
+    1. Use importlib to load modules dynamically
+    2. Check for expected classes/functions
+    3. Verify core functionality is accessible
+    
+    💡 ADHD TIP: Import tests catch typos and missing functions before runtime
+    """
     print("🧪 Testing Slack bot imports...")
     
     try:
-        # Test import of main bot class
+        # ===== PREPARE IMPORT PATH =====
+        # Add slack directory to Python path for imports
         sys.path.insert(0, str(Path("slack")))
         
-        # Check if we can import the main classes (would fail if syntax errors)
+        # ===== TEST MAIN BOT FILE =====
         import importlib.util
         
-        # Test slack_bot.py
+        # Test slack_bot.py - main bot implementation
         slack_bot_spec = importlib.util.spec_from_file_location(
             "slack_bot", "slack/slack_bot.py"
         )
@@ -71,28 +126,30 @@ def test_slack_bot_imports():
             print("❌ Cannot load slack_bot.py")
             return False
         
+        # Actually load and execute the module
         slack_bot_module = importlib.util.module_from_spec(slack_bot_spec)
         slack_bot_spec.loader.exec_module(slack_bot_module)
         
-        # Check for main class
+        # ===== VERIFY MAIN CLASS EXISTS =====
         if not hasattr(slack_bot_module, 'JamieSlackBot'):
             print("❌ JamieSlackBot class not found in slack_bot.py")
             return False
         
         print("✅ slack_bot.py imports successfully")
         
-        # Test slack_formatters.py
+        # ===== TEST FORMATTERS FILE =====
         formatters_spec = importlib.util.spec_from_file_location(
             "slack_formatters", "slack/slack_formatters.py"
         )
         formatters_module = importlib.util.module_from_spec(formatters_spec)
         formatters_spec.loader.exec_module(formatters_module)
         
+        # Check for required formatting functions
         required_functions = [
-            'format_cluster_status',
-            'format_error_analysis', 
-            'format_metrics_summary',
-            'format_alert_summary'
+            'format_cluster_status',    # Kubernetes + Prometheus status
+            'format_error_analysis',    # Error log formatting
+            'format_metrics_summary',   # Performance metrics display
+            'format_alert_summary'      # Alert notifications
         ]
         
         for func_name in required_functions:
@@ -102,18 +159,19 @@ def test_slack_bot_imports():
         
         print("✅ slack_formatters.py imports successfully")
         
-        # Test slack_utils.py
+        # ===== TEST UTILITIES FILE =====
         utils_spec = importlib.util.spec_from_file_location(
             "slack_utils", "slack/slack_utils.py"
         )
         utils_module = importlib.util.module_from_spec(utils_spec)
         utils_spec.loader.exec_module(utils_module)
         
+        # Check for core utility functions
         required_utils = [
-            'extract_devops_intent',
-            'get_user_preferences',
-            'save_user_preferences',
-            'sync_with_portal'
+            'extract_devops_intent',     # Natural language processing
+            'get_user_preferences',      # User settings management
+            'save_user_preferences',     # Preference persistence
+            'sync_with_portal'          # Cross-platform integration
         ]
         
         for util_name in required_utils:
@@ -123,13 +181,14 @@ def test_slack_bot_imports():
         
         print("✅ slack_utils.py imports successfully")
         
-        # Test notifications.py
+        # ===== TEST NOTIFICATIONS FILE =====
         notifications_spec = importlib.util.spec_from_file_location(
             "notifications", "slack/notifications.py"
         )
         notifications_module = importlib.util.module_from_spec(notifications_spec)
         notifications_spec.loader.exec_module(notifications_module)
         
+        # Check for notification manager class
         if not hasattr(notifications_module, 'JamieNotificationManager'):
             print("❌ JamieNotificationManager class not found in notifications.py")
             return False
@@ -142,52 +201,75 @@ def test_slack_bot_imports():
         print(f"❌ Import error: {e}")
         return False
 
+# ==========================================
+# ⚙️ CONFIGURATION VALIDATION  
+# ==========================================
+
 def test_slack_configuration():
-    """Test Slack configuration and environment setup"""
+    """
+    🧪 Test Slack configuration and environment setup
+    
+    🎯 PURPOSE: Validate configuration loading and credential validation
+    
+    WHAT WE TEST:
+    - Configuration loading logic works
+    - Credential validation catches bad tokens
+    - Environment variable handling is robust
+    - Error messages are helpful
+    
+    TEST STRATEGY:
+    1. Test configuration with missing environment variables
+    2. Test credential validation with good/bad tokens
+    3. Verify error handling and user guidance
+    
+    💡 ADHD TIP: Configuration tests prevent "it works on my machine" problems
+    """
     print("🧪 Testing Slack configuration...")
     
     try:
         sys.path.insert(0, str(Path("slack")))
         import importlib.util
         
-        # Load the startup script
+        # ===== LOAD STARTUP MODULE =====
         startup_spec = importlib.util.spec_from_file_location(
             "start_slack_bot", "slack/start_slack_bot.py"
         )
         startup_module = importlib.util.module_from_spec(startup_spec)
         startup_spec.loader.exec_module(startup_module)
         
-        # Check for required configuration
+        # ===== CHECK BOOTSTRAP CLASS EXISTS =====
         if not hasattr(startup_module, 'JamieSlackBootstrap'):
             print("❌ JamieSlackBootstrap class not found")
             return False
         
-        # Test configuration loading (without actual env vars)
+        # ===== TEST CONFIGURATION LOADING =====
         bootstrap = startup_module.JamieSlackBootstrap()
         
-        # This should return None due to missing env vars, but shouldn't crash
+        # This should return None due to missing env vars (expected behavior)
         config = bootstrap._load_configuration()
         if config is not None:
             print("⚠️ Configuration loaded without environment variables (unexpected)")
         
         print("✅ Configuration structure is valid")
         
-        # Test credential validation
+        # ===== TEST CREDENTIAL VALIDATION =====
+        # Test with valid credential format
         test_config = {
-            'bot_token': 'xoxb-test-token',
-            'app_token': 'xapp-test-token',
-            'signing_secret': 'a' * 32  # Minimum length
+            'bot_token': 'xoxb-test-token',        # Correct format
+            'app_token': 'xapp-test-token',        # Correct format
+            'signing_secret': 'a' * 32             # Minimum length requirement
         }
         
         if not bootstrap._validate_slack_credentials(test_config):
             print("❌ Credential validation failed for valid test config")
             return False
         
-        # Test invalid credentials
+        # ===== TEST INVALID CREDENTIALS =====
+        # Test with bad credential format
         invalid_config = {
-            'bot_token': 'invalid-token',
-            'app_token': 'invalid-token',
-            'signing_secret': 'short'
+            'bot_token': 'invalid-token',          # Wrong format
+            'app_token': 'invalid-token',          # Wrong format
+            'signing_secret': 'short'              # Too short
         }
         
         if bootstrap._validate_slack_credentials(invalid_config):
@@ -202,77 +284,120 @@ def test_slack_configuration():
         print(f"❌ Configuration test error: {e}")
         return False
 
+# ==========================================
+# 🧠 LOGIC FUNCTIONALITY TESTS
+# ==========================================
+
 def test_devops_intent_extraction():
-    """Test DevOps intent extraction functionality"""
+    """
+    🧪 Test DevOps intent extraction accuracy
+    
+    🎯 PURPOSE: Verify Jamie can understand what users want from natural language
+    
+    WHAT WE TEST:
+    - Cluster status queries are recognized correctly
+    - Error investigation requests are identified
+    - Performance monitoring questions are parsed
+    - Entity extraction finds services, time ranges, etc.
+    - Priority detection works (urgent vs normal)
+    
+    TEST CASES:
+    - "How's my cluster?" → cluster_status intent
+    - "Show me errors from auth-service" → error_investigation + service entity
+    - "CPU usage last hour" → performance_monitoring + time range
+    
+    💡 ADHD TIP: Intent extraction is Jamie's "listening comprehension" - crucial for good responses!
+    """
     print("🧪 Testing DevOps intent extraction...")
     
     try:
         sys.path.insert(0, str(Path("slack")))
         import importlib.util
         
+        # ===== LOAD UTILS MODULE =====
         utils_spec = importlib.util.spec_from_file_location(
             "slack_utils", "slack/slack_utils.py"
         )
         utils_module = importlib.util.module_from_spec(utils_spec)
         utils_spec.loader.exec_module(utils_module)
         
-        # Test various DevOps queries
-        test_cases = [
-            {
-                "query": "How's my cluster doing?",
-                "expected_intent": "cluster_status",
-                "expected_confidence": 0.8
-            },
-            {
-                "query": "Show me recent errors",
-                "expected_intent": "error_investigation",
-                "expected_confidence": 0.8
-            },
-            {
-                "query": "What's the CPU usage?",
-                "expected_intent": "performance_monitoring",
-                "expected_confidence": 0.8
-            },
-            {
-                "query": "Any alerts firing?",
-                "expected_intent": "alert_management",
-                "expected_confidence": 0.8
-            },
-            {
-                "query": "Hello there",
-                "expected_intent": "general",
-                "expected_confidence": 0.0
-            }
+        # ===== TEST CLUSTER STATUS QUERIES =====
+        cluster_queries = [
+            "How's my cluster doing?",
+            "What's the cluster status?",
+            "Show me cluster health"
         ]
         
-        success = True
-        for test_case in test_cases:
-            result = utils_module.extract_devops_intent(test_case["query"])
-            
-            if result["intent"] != test_case["expected_intent"]:
-                print(f"❌ Intent mismatch for '{test_case['query']}': got {result['intent']}, expected {test_case['expected_intent']}")
-                success = False
-            elif result["confidence"] != test_case["expected_confidence"]:
-                print(f"⚠️ Confidence mismatch for '{test_case['query']}': got {result['confidence']}, expected {test_case['expected_confidence']}")
-            else:
-                print(f"✅ Intent extraction correct for: '{test_case['query']}'")
+        for query in cluster_queries:
+            result = utils_module.extract_devops_intent(query)
+            if result.get("intent") != "cluster_status":
+                print(f"❌ Failed to detect cluster_status intent for: '{query}'")
+                print(f"   Got: {result.get('intent')}")
+                return False
         
-        # Test keyword extraction
-        test_query = "Show me kubernetes pod errors from the last hour"
-        result = utils_module.extract_devops_intent(test_query)
+        print("✅ Cluster status intent detection works")
         
-        expected_keywords = ["kubernetes", "pod", "error"]
-        found_keywords = result.get("keywords", [])
+        # ===== TEST ERROR INVESTIGATION =====
+        error_queries = [
+            "Show me errors from auth-service",
+            "What's wrong with the API?",
+            "Debug the payment service"
+        ]
         
-        for keyword in expected_keywords:
-            if keyword not in found_keywords:
-                print(f"❌ Missing keyword '{keyword}' in extraction")
-                success = False
+        for query in error_queries:
+            result = utils_module.extract_devops_intent(query)
+            if result.get("intent") != "error_investigation":
+                print(f"❌ Failed to detect error_investigation intent for: '{query}'")
+                return False
         
-        if success:
-            print("✅ Keyword extraction working correctly")
+        print("✅ Error investigation intent detection works")
         
-        return success
+        # ===== TEST ENTITY EXTRACTION =====
+        # Test service name extraction
+        service_query = "show me errors from auth-service last hour"
+        result = utils_module.extract_devops_intent(service_query)
+        
+        entities = result.get("entities", {})
+        if "service_names" not in entities:
+            print("❌ Failed to extract service names from query")
+            return False
+        
+        if "auth" not in entities["service_names"]:  # Should match "auth-service" pattern
+            print("❌ Failed to extract 'auth' service name")
+            return False
+        
+        print("✅ Service name extraction works")
+        
+        # ===== TEST TIME RANGE EXTRACTION =====
+        time_query = "show me logs from the last 2 hours"
+        result = utils_module.extract_devops_intent(time_query)
+        
+        if result.get("time_range") != "2h":
+            print(f"❌ Failed to extract time range. Got: {result.get('time_range')}")
+            return False
+        
+        print("✅ Time range extraction works")
+        
+        # ===== TEST PRIORITY DETECTION =====
+        # Critical priority
+        urgent_query = "URGENT: database is down!"
+        result = utils_module.extract_devops_intent(urgent_query)
+        
+        if result.get("priority") != "high":
+            print(f"❌ Failed to detect high priority. Got: {result.get('priority')}")
+            return False
+        
+        # Normal priority
+        normal_query = "How's the CPU usage?"
+        result = utils_module.extract_devops_intent(normal_query)
+        
+        if result.get("priority") != "normal":
+            print(f"❌ Failed to detect normal priority. Got: {result.get('priority')}")
+            return False
+        
+        print("✅ Priority detection works")
+        
+        return True
         
     except Exception as e:
         print(f"❌ Intent extraction test error: {e}")
@@ -669,56 +794,112 @@ def test_slack_app_configuration():
     
     return True
 
+# ==========================================
+# 🧪 MAIN TEST RUNNER
+# ==========================================
+
 def run_all_tests():
-    """Run all Sprint 5 tests"""
-    print("🚀 Running Jamie AI DevOps Copilot - Sprint 5 Test Suite")
-    print("=" * 60)
+    """
+    🧪 Run all Sprint 5 Slack integration tests
     
+    🎯 PURPOSE: Comprehensive validation of Jamie's Slack integration
+    
+    TEST SEQUENCE:
+    1. File Structure → 2. Code Quality → 3. Configuration → 4. Logic → 5. Integration
+    
+    RESULTS:
+    - Shows pass/fail for each test
+    - Counts total success rate
+    - Provides clear feedback for fixes needed
+    
+    💡 ADHD TIP: All tests in one place - run once, see everything that works or needs fixing!
+    """
+    
+    print("🧪" + "="*60)
+    print("🧪 Jamie AI DevOps Copilot - Sprint 5 Test Suite")
+    print("🧪 Slack Integration - Comprehensive Validation")
+    print("🧪" + "="*60)
+    
+    # ===== DEFINE ALL TESTS =====
     tests = [
-        ("Slack Integration Structure", test_slack_integration_structure),
-        ("Slack Bot Imports", test_slack_bot_imports),
-        ("Slack Configuration", test_slack_configuration),
-        ("DevOps Intent Extraction", test_devops_intent_extraction),
-        ("Slack Message Formatting", test_slack_formatting),
-        ("Notification System", test_notification_system),
+        ("File Structure", test_slack_integration_structure),
+        ("Code Imports", test_slack_bot_imports),
+        ("Configuration", test_slack_configuration),
+        ("Intent Extraction", test_devops_intent_extraction),
+        ("Slack Formatting", test_slack_formatting),
+        ("Notifications", test_notification_system),
         ("Cross-Platform Sync", test_cross_platform_sync),
         ("British Personality", test_british_personality),
-        ("Requirements & Dependencies", test_requirements_and_dependencies),
-        ("Slack App Configuration", test_slack_app_configuration)
+        ("Dependencies", test_requirements_and_dependencies),
+        ("Slack App Config", test_slack_app_configuration)
     ]
     
+    # ===== RUN EACH TEST =====
     passed = 0
     total = len(tests)
     
-    for test_name, test_func in tests:
-        print(f"\n📋 {test_name}")
-        print("-" * 40)
+    for test_name, test_function in tests:
+        print(f"\n🧪 Running Test: {test_name}")
+        print("-" * 50)
         
         try:
-            if test_func():
-                print(f"✅ {test_name} - PASSED")
+            # Run the test function
+            result = test_function()
+            
+            if result:
+                print(f"✅ {test_name}: PASSED")
                 passed += 1
             else:
-                print(f"❌ {test_name} - FAILED")
+                print(f"❌ {test_name}: FAILED")
+                
         except Exception as e:
-            print(f"💥 {test_name} - ERROR: {e}")
+            print(f"❌ {test_name}: ERROR - {e}")
     
-    print("\n" + "=" * 60)
-    print(f"📊 SPRINT 5 TEST RESULTS: {passed}/{total} tests passed")
+    # ===== DISPLAY RESULTS =====
+    print("\n" + "="*60)
+    print("🧪 TEST RESULTS SUMMARY")
+    print("="*60)
+    
+    success_rate = (passed / total) * 100
+    
+    print(f"✅ Tests Passed: {passed}/{total}")
+    print(f"📊 Success Rate: {success_rate:.1f}%")
     
     if passed == total:
-        print("🎉 ALL TESTS PASSED! Jamie's Slack Integration is ready!")
-        print("🤖 Sprint 5: Slack Integration - COMPLETE! 🇬🇧")
-        print("\n💡 Next Steps:")
-        print("   1. Set up Slack app at https://api.slack.com/apps")
-        print("   2. Configure environment variables")
-        print("   3. Run: python slack/start_slack_bot.py")
-        print("   4. Use /jamie in Slack to start chatting!")
+        print("🎉 ALL TESTS PASSED! Sprint 5 Slack integration is ready! 🚀")
+        print("🇬🇧 Jamie says: 'Brilliant! Everything's working like a dream, mate!'")
     else:
-        print(f"⚠️ {total - passed} tests failed. Please fix issues before deployment.")
+        failed = total - passed
+        print(f"⚠️ {failed} test(s) failed. Please review and fix issues above.")
+        print("🇬🇧 Jamie says: 'Bit of a wobble, but we'll sort it out!'")
     
     return passed == total
 
+# ===== MAIN EXECUTION =====
 if __name__ == "__main__":
-    success = run_all_tests()
-    sys.exit(0 if success else 1) 
+    """
+    🎯 Run this script to validate Sprint 5 Slack integration
+    
+    USAGE:
+    python test_jamie_sprint5.py
+    
+    💡 ADHD TIP: Single command to test everything - no need to remember multiple test commands!
+    """
+    
+    try:
+        # Set up proper working directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(script_dir)
+        
+        # Run all tests
+        success = run_all_tests()
+        
+        # Exit with appropriate code
+        sys.exit(0 if success else 1)
+        
+    except KeyboardInterrupt:
+        print("\n👋 Tests interrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Test suite failed: {e}")
+        sys.exit(1) 

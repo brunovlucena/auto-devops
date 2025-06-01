@@ -3,16 +3,55 @@
 🎨 Jamie AI DevOps Copilot - Slack Formatters
 Sprint 5: Slack Integration
 
-Format DevOps data into beautiful Slack blocks with Jamie's British personality.
-Handles cluster status, error analysis, metrics, and more.
+=== WHAT THIS FILE DOES ===
+Transform boring DevOps data into beautiful Slack messages!
+- Cluster status → Pretty health dashboard with bars and emojis
+- Error logs → Organized service breakdown with timelines  
+- Metrics → Visual usage bars and health scores
+- Alerts → Color-coded severity with action buttons
+
+=== KEY CONCEPTS ===
+1. Slack Blocks: Like HTML but for Slack (sections, buttons, text)
+2. Visual Elements: Usage bars, emojis, color coding
+3. Interactive Components: Buttons for "Details", "Refresh", etc.
+4. British Personality: Jamie's charm woven into every message
+
+=== VISUAL EXAMPLES ===
+Input: {"cpu_percent": 75}
+Output: 🔥🔥🔥🔥🔥🔥🔥🔥⬜⬜ 75%
+
+Input: {"status": "healthy"}  
+Output: ✅ All systems go, mate! 🇬🇧
 """
 
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 
+# ==========================================
+# 🏗️ CLUSTER STATUS FORMATTING
+# ==========================================
 def format_cluster_status(k8s_status: Dict[str, Any], prometheus_status: Dict[str, Any]) -> List[Dict]:
-    """Format cluster status for Slack display"""
+    """
+    🎯 Format cluster status for Slack display
     
+    INPUT: Raw data from Kubernetes and Prometheus
+    OUTPUT: Beautiful Slack blocks with health indicators, usage bars, action buttons
+    
+    🖼️ VISUAL RESULT:
+    ┌─────────────────────────────┐
+    │ 🏗️ Cluster Status Overview │
+    │ ✅ All systems go, mate!   │
+    │ 🏗️ Nodes: 3/3 Ready       │
+    │ 🚀 Pods: 47 Running        │
+    │ 💾 CPU: ████████░░ 80%     │
+    │ [🔍 Details] [🔄 Refresh]  │
+    └─────────────────────────────┘
+    
+    💡 ADHD TIP: Each block is like a LEGO piece - header, content, actions
+    """
+    
+    # ===== START WITH HEADER BLOCK =====
+    # Every good Slack message starts with a clear title
     blocks = [
         {
             "type": "header",
@@ -23,26 +62,30 @@ def format_cluster_status(k8s_status: Dict[str, Any], prometheus_status: Dict[st
         }
     ]
     
-    # Cluster health summary
+    # ===== HEALTH SUMMARY WITH PERSONALITY =====
+    # Show overall health with Jamie's British charm
     health_emoji = "✅" if k8s_status.get("healthy", False) else "❌"
+    health_message = "All systems go, mate!" if k8s_status.get("healthy") else "Houston, we have a problem!"
+    
     blocks.append({
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": f"{health_emoji} *Cluster Health:* {'All systems go, mate!' if k8s_status.get('healthy') else 'Houston, we have a problem!'} 🇬🇧"
+            "text": f"{health_emoji} *Cluster Health:* {health_message} 🇬🇧"
         }
     })
     
-    # Key metrics in fields
+    # ===== KEY METRICS IN GRID LAYOUT =====
+    # Show important numbers in a 2x2 grid layout for easy scanning
     blocks.append({
         "type": "section",
-        "fields": [
+        "fields": [  # Fields create a grid layout - perfect for metrics!
             {
                 "type": "mrkdwn",
                 "text": f"*🏗️ Nodes:*\n{k8s_status.get('nodes_ready', '?')}/{k8s_status.get('nodes_total', '?')} Ready"
             },
             {
-                "type": "mrkdwn",
+                "type": "mrkdwn", 
                 "text": f"*🚀 Pods:*\n{k8s_status.get('pods_running', '?')} Running"
             },
             {
@@ -56,9 +99,12 @@ def format_cluster_status(k8s_status: Dict[str, Any], prometheus_status: Dict[st
         ]
     })
     
-    # Resource usage bar charts
+    # ===== VISUAL RESOURCE USAGE BARS =====
+    # Turn percentages into visual bars (much easier to understand!)
     if k8s_status.get("resource_usage"):
         resources = k8s_status["resource_usage"]
+        
+        # CREATE VISUAL BARS: 80% → 🔥🔥🔥🔥🔥🔥🔥🔥⬜⬜
         cpu_bar = create_usage_bar(resources.get("cpu_percent", 0))
         memory_bar = create_usage_bar(resources.get("memory_percent", 0))
         
@@ -70,11 +116,12 @@ def format_cluster_status(k8s_status: Dict[str, Any], prometheus_status: Dict[st
             }
         })
     
-    # Recent events or issues
+    # ===== RECENT EVENTS (IF ANY) =====
+    # Show what's been happening lately (max 3 events to avoid clutter)
     if k8s_status.get("recent_events"):
         events_text = "\n".join([
             f"• {event.get('type', 'Info')}: {event.get('message', 'No details')}"
-            for event in k8s_status["recent_events"][:3]
+            for event in k8s_status["recent_events"][:3]  # Only show top 3
         ])
         
         blocks.append({
@@ -85,33 +132,59 @@ def format_cluster_status(k8s_status: Dict[str, Any], prometheus_status: Dict[st
             }
         })
     
-    # Action buttons
+    # ===== ACTION BUTTONS =====
+    # Give users quick actions they can take
     blocks.append({
         "type": "actions",
         "elements": [
             {
                 "type": "button",
                 "text": {"type": "plain_text", "text": "🔍 Detailed View"},
-                "action_id": "cluster_details",
-                "style": "primary"
+                "action_id": "cluster_details",     # Slack will send this ID when clicked
+                "style": "primary"                   # Blue button (most important action)
             },
             {
-                "type": "button",
+                "type": "button", 
                 "text": {"type": "plain_text", "text": "🔄 Refresh"},
-                "action_id": "refresh_status"
+                "action_id": "refresh_status"       # Update the data
             },
             {
                 "type": "button",
                 "text": {"type": "plain_text", "text": "📊 Metrics"},
-                "action_id": "show_metrics"
+                "action_id": "show_metrics"         # Deep dive into metrics
             }
         ]
     })
     
     return blocks
 
+# ==========================================
+# 🚨 ERROR ANALYSIS FORMATTING  
+# ==========================================
 def format_error_analysis(errors: List[Dict[str, Any]], time_range: str = "1h") -> List[Dict]:
-    """Format error analysis for Slack display"""
+    """
+    🎯 Format error analysis for Slack display
+    
+    INPUT: List of errors from logs/monitoring
+    OUTPUT: Organized breakdown by service with severity indicators
+    
+    🖼️ VISUAL RESULT:
+    ┌─────────────────────────────┐
+    │ 🚨 Error Analysis - Last 1h│
+    │ Found 15 errors across 3   │
+    │ services. Let me break it   │
+    │ down for you:              │
+    │                           │
+    │ ❌ auth-service - 8 errors │
+    │ ```Connection timeout...``` │
+    │ [🔍 Details]              │
+    │                           │
+    │ 📈 Error Timeline:         │
+    │ ████▅▅▃▃▁▁ (last 10 min)  │
+    └─────────────────────────────┘
+    
+    💡 ADHD TIP: Group similar errors to reduce overwhelm
+    """
     
     blocks = [
         {
@@ -123,6 +196,7 @@ def format_error_analysis(errors: List[Dict[str, Any]], time_range: str = "1h") 
         }
     ]
     
+    # ===== HANDLE NO ERRORS (CELEBRATE!) =====
     if not errors:
         blocks.append({
             "type": "section",
@@ -133,7 +207,8 @@ def format_error_analysis(errors: List[Dict[str, Any]], time_range: str = "1h") 
         })
         return blocks
     
-    # Error summary
+    # ===== ERROR SUMMARY STATS =====
+    # Give overview before diving into details
     total_errors = len(errors)
     unique_services = len(set(error.get("service", "unknown") for error in errors))
     
@@ -145,7 +220,8 @@ def format_error_analysis(errors: List[Dict[str, Any]], time_range: str = "1h") 
         }
     })
     
-    # Group errors by service
+    # ===== GROUP ERRORS BY SERVICE =====
+    # Organize chaos into manageable chunks
     service_errors = {}
     for error in errors:
         service = error.get("service", "unknown")
@@ -153,34 +229,40 @@ def format_error_analysis(errors: List[Dict[str, Any]], time_range: str = "1h") 
             service_errors[service] = []
         service_errors[service].append(error)
     
-    # Show top 3 services with errors
+    # ===== SHOW TOP 3 PROBLEMATIC SERVICES =====
+    # Don't overwhelm with every service - focus on worst ones
     top_services = sorted(service_errors.items(), key=lambda x: len(x[1]), reverse=True)[:3]
     
     for service, service_error_list in top_services:
         error_count = len(service_error_list)
-        latest_error = service_error_list[0]
+        latest_error = service_error_list[0]  # Most recent error
         
+        # ===== SEVERITY COLOR CODING =====
+        # Visual indicators for error severity
         severity_emoji = {
-            "critical": "🔥",
-            "error": "❌", 
-            "warning": "⚠️",
-            "info": "ℹ️"
+            "critical": "🔥",   # Fire for critical
+            "error": "❌",      # X for errors
+            "warning": "⚠️",    # Warning triangle
+            "info": "ℹ️"        # Info symbol
         }.get(latest_error.get("severity", "error"), "❌")
         
+        # ===== SERVICE ERROR BLOCK =====
+        # Show service name, count, sample error, and action button
         blocks.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"{severity_emoji} *{service}* - {error_count} error{'s' if error_count > 1 else ''}\n```{latest_error.get('message', 'No error message')[:100]}...```"
+                "text": f"{severity_emoji} *{service}* - {error_count} error{'s' if error_count > 1 else ''}\n```{latest_error.get('message', 'No error message')[:100]}...```"  # Truncate long messages
             },
-            "accessory": {
+            "accessory": {  # Side button for details
                 "type": "button",
                 "text": {"type": "plain_text", "text": "🔍 Details"},
                 "action_id": f"error_details_{service}"
             }
         })
     
-    # Error timeline
+    # ===== ERROR TIMELINE VISUALIZATION =====
+    # Show when errors happened (visual pattern recognition)
     if len(errors) > 0:
         timeline_text = create_error_timeline(errors)
         blocks.append({
@@ -191,7 +273,7 @@ def format_error_analysis(errors: List[Dict[str, Any]], time_range: str = "1h") 
             }
         })
     
-    # Action buttons
+    # ===== ACTION BUTTONS =====
     blocks.append({
         "type": "actions",
         "elements": [
@@ -203,13 +285,14 @@ def format_error_analysis(errors: List[Dict[str, Any]], time_range: str = "1h") 
             },
             {
                 "type": "button",
-                "text": {"type": "plain_text", "text": "🔧 Troubleshoot"},
-                "action_id": "start_troubleshooting"
+                "text": {"type": "plain_text", "text": "🚑 Start Investigation"},
+                "action_id": "start_investigation",
+                "style": "danger"  # Red button for urgent action
             },
             {
                 "type": "button",
-                "text": {"type": "plain_text", "text": "🔔 Set Alert"},
-                "action_id": "create_alert"
+                "text": {"type": "plain_text", "text": "📋 Create Incident"},
+                "action_id": "create_incident"
             }
         ]
     })
@@ -372,43 +455,83 @@ def format_alert_summary(alerts: List[Dict[str, Any]]) -> List[Dict]:
     
     return blocks
 
+# ==========================================
+# 📊 VISUAL HELPER FUNCTIONS
+# ==========================================
 def create_usage_bar(percentage: float, width: int = 10) -> str:
-    """Create a visual usage bar using emojis"""
-    filled = int((percentage / 100) * width)
-    empty = width - filled
+    """
+    🎯 Create visual usage bar from percentage
     
-    if percentage > 90:
-        bar_char = "🔴"
-    elif percentage > 75:
-        bar_char = "🟡"
+    EXAMPLES:
+    75% → 🔥🔥🔥🔥🔥🔥🔥🔥⬜⬜
+    50% → 🔥🔥🔥🔥🔥⬜⬜⬜⬜⬜
+    90% → 🔥🔥🔥🔥🔥🔥🔥🔥🔥⬜
+    
+    💡 ADHD TIP: Visual bars are easier to understand than raw numbers
+    """
+    filled = int((percentage / 100) * width)  # How many filled squares
+    empty = width - filled                     # How many empty squares
+    
+    # Choose emoji based on usage level
+    if percentage >= 90:
+        fill_emoji = "🔥"  # Fire for high usage
+    elif percentage >= 70:
+        fill_emoji = "🟨"  # Yellow for medium-high
+    elif percentage >= 50:
+        fill_emoji = "🟩"  # Green for normal
     else:
-        bar_char = "🟢"
+        fill_emoji = "🟦"  # Blue for low
     
-    return bar_char * filled + "⚪" * empty
+    return fill_emoji * filled + "⬜" * empty
 
 def create_error_timeline(errors: List[Dict[str, Any]]) -> str:
-    """Create a simple timeline of errors"""
+    """
+    🎯 Create visual timeline of errors
+    
+    INPUT: List of errors with timestamps
+    OUTPUT: Visual bar chart showing error frequency over time
+    
+    EXAMPLE:
+    ████▅▅▃▃▁▁ (errors in last 10 minutes)
+    ───────────────────────────────────────
+    10m ago                           now
+    
+    💡 ADHD TIP: Patterns are easier to spot visually than in raw timestamps
+    """
     if not errors:
-        return "No errors to display"
+        return "No errors in timeline"
     
-    # Group by hour
-    hourly_counts = {}
+    # ===== GROUP ERRORS BY TIME BUCKETS =====
+    # Divide time into 10 buckets and count errors in each
+    now = datetime.now()
+    buckets = [0] * 10  # 10 time periods
+    
     for error in errors:
-        timestamp = error.get("timestamp", datetime.now())
-        if isinstance(timestamp, str):
-            timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-        
-        hour = timestamp.replace(minute=0, second=0, microsecond=0)
-        hourly_counts[hour] = hourly_counts.get(hour, 0) + 1
+        # Calculate how long ago this error occurred
+        if error.get("timestamp"):
+            error_time = datetime.fromisoformat(error["timestamp"])
+            minutes_ago = (now - error_time).total_seconds() / 60
+            
+            # Put error in appropriate time bucket
+            if minutes_ago <= 60:  # Only last hour
+                bucket_index = min(int(minutes_ago / 6), 9)  # 6-minute buckets
+                buckets[9 - bucket_index] += 1  # Reverse order (oldest to newest)
     
-    # Create simple text timeline
-    timeline_parts = []
-    for hour, count in sorted(hourly_counts.items())[-6:]:  # Last 6 hours
-        hour_str = hour.strftime("%H:%M")
-        bar = "█" * min(count, 10)  # Max 10 chars
-        timeline_parts.append(f"{hour_str}: {bar} ({count})")
+    # ===== CREATE VISUAL BARS =====
+    # Convert counts to visual height
+    max_errors = max(buckets) if max(buckets) > 0 else 1
+    bar_chars = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
     
-    return "\n".join(timeline_parts)
+    timeline = ""
+    for count in buckets:
+        if count == 0:
+            timeline += "▁"  # Minimum bar
+        else:
+            # Scale to bar height
+            bar_index = min(int((count / max_errors) * 7), 7)
+            timeline += bar_chars[bar_index]
+    
+    return f"{timeline} (last 60 minutes)"
 
 def calculate_health_score(metrics: Dict[str, Any]) -> int:
     """Calculate overall health score from metrics"""
