@@ -82,7 +82,6 @@ Development Environment:
 ```yaml
 🔄 GitOps (Recommended):
   - ArgoCD: v2.7+ (deployment automation)
-  - Flux: v2.0+ (alternative to ArgoCD)
 
 🔐 Security (Production):
   - Cert-Manager: v1.12+ (TLS certificates)
@@ -91,8 +90,6 @@ Development Environment:
 
 📈 Advanced Features:
   - Istio: v1.18+ (service mesh)
-  - Jaeger: v1.45+ (alternative to Tempo)
-  - TimescaleDB: v2.11+ (time-series data)
 ```
 
 ---
@@ -228,7 +225,7 @@ Development Environment:
     - Kubernetes administration
     - CI/CD pipeline management
     - Monitoring & observability
-    - Infrastructure as Code (Terraform/Helm)
+    - Infrastructure as Code (Pulumi/Helm)
 
   Platform Engineer (Recommended):
     - AI/ML systems experience
@@ -279,98 +276,8 @@ Ongoing: Monthly training sessions for updates
   6. SSL certificates (Let's Encrypt or custom)
 
 📦 Installation Tools:
-  - Terraform: Infrastructure provisioning
+  - Pulumi: Infrastructure provisioning
   - Helm Charts: Application deployment
   - ArgoCD: GitOps deployments
   - Scripts: Automated setup procedures
 ```
-
-### **Deployment Phases**
-```yaml
-Phase 1: Infrastructure (Week 1)
-  ✅ Kubernetes cluster setup
-  ✅ Monitoring stack deployment
-  ✅ Database layer installation
-  ✅ Network & security configuration
-
-Phase 2: Jamie Deployment (Week 2)
-  ✅ AI model installation (Ollama)
-  ✅ Jamie chat portal deployment
-  ✅ MCP server integrations
-  ✅ Slack bot configuration
-
-Phase 3: Scarlet Deployment (Week 3)
-  ✅ Autonomous agent framework
-  ✅ Decision engine configuration
-  ✅ Action library setup
-  ✅ Learning system initialization
-
-Phase 4: Integration & Testing (Week 4)
-  ✅ End-to-end testing
-  ✅ Performance validation
-  ✅ Security verification
-  ✅ Team training & handover
-```
-
----
-
-## ✅ **Pre-Deployment Checklist**
-
-### **Infrastructure Readiness**
-```yaml
-□ Kubernetes cluster operational (v1.25+)
-□ Sufficient compute resources allocated
-□ Storage classes configured and tested
-□ Network policies and security groups configured
-□ DNS and ingress controller setup
-□ SSL certificates installed
-□ Monitoring stack deployed and operational
-□ Backup solutions configured and tested
-```
-
-### **Security Verification**
-```yaml
-□ RBAC policies configured and tested
-□ Pod security standards enforced
-□ Network segmentation implemented
-□ Secrets management operational
-□ Audit logging enabled
-□ Vulnerability scanning configured
-□ Incident response procedures documented
-□ Team access controls configured
-```
-
-### **Integration Testing**
-```yaml
-□ MCP servers connecting to target systems
-□ Database connections established
-□ API endpoints responding correctly
-□ Monitoring data flowing properly
-□ Alert routing configured and tested
-□ Backup/restore procedures validated
-□ Performance benchmarks established
-□ Documentation complete and accessible
-```
-
----
-
-## 🎯 **Success Criteria**
-
-### **Technical Metrics**
-```yaml
-Performance:
-  - Jamie response time: <2 seconds
-  - Scarlet detection time: <30 seconds
-  - System uptime: >99.9%
-  - Data accuracy: >95%
-
-Adoption:
-  - Team onboarding: <1 week
-  - Daily active users: >80% of team
-  - Questions resolved: >90% first attempt
-  - User satisfaction: >4.5/5
-```
-
----
-
-**Ready to Begin?** Use this checklist to ensure your environment meets all requirements before deployment. 🚀
