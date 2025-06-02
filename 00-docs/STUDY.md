@@ -8,8 +8,15 @@
 ## 🚀 **IMMEDIATE PRIORITIES** *(Next 2 weeks)*
 
 ### 🤖 **Core AI & Agent Development** *(Week 1-2)*
+
+- [ ] **Gen AI and LLMs - For Dummies**
+
+- [ ] **AI Engineering**
+
+- [ ] **NeetCode**
+
 - [ ] **LangGraph Fundamentals** *(3-4 hours)*
-  - [ ] [Stanford AI Course - Building Game Simulation Agents](https://www.youtube.com/playlist?list=PLoROMvodv4rO1NB9TD4iUZ3qghGEGtqNX)
+  - [ ] [Stanford AI Course](https://www.youtube.com/playlist?list=PLoROMvodv4rO1NB9TD4iUZ3qghGEGtqNX)
   - [ ] [AI Agents in LangGraph Course](https://www.deeplearning.ai/short-courses/ai-agents-in-langgraph/)
   - [ ] [LLM Agents Learning Course](https://llmagents-learning.org/f24) + [Livestream](https://www.youtube.com/watch?v=0QSU5EMn27I)
 
@@ -21,6 +28,9 @@
   - [ ] [MCP Quickstart](https://modelcontextprotocol.io/quickstart/user)
   - [ ] [Desktop Commander MCP](https://glama.ai/mcp/servers/@wonderwhy-er/DesktopCommanderMCP)
   - [ ] [Claude Desktop Commander](https://playbooks.com/mcp/mrgnss-claude-desktop-commander)
+  - [ ] [Building Game Simulation Agents](https://foo.com)
+
+- [ ] **Grokking Algorithms**
 
 ---
 

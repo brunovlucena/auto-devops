@@ -14,13 +14,15 @@ This video provides an in-depth look at how our Auto-DevOps platform integrates 
 
 ### **1. 🤖 Cursor-AI + Jamie Integration** *(Minutes 0:00 - 5:30)*
 
-**Real Development Workflow Integration**
+#### Real Development Workflow Integration
+
 - **Live coding session** using Cursor-AI IDE with Jamie assistance
 - **Contextual AI help** directly within the development environment
 - **Infrastructure queries** answered instantly while coding
 - **Code review assistance** with DevOps best practices
 
 **Key Demonstrations:**
+
 - ✅ **Kubernetes deployment** guidance within Cursor
 - ✅ **Docker configuration** optimization suggestions
 - ✅ **CI/CD pipeline** setup assistance
@@ -28,6 +30,7 @@ This video provides an in-depth look at how our Auto-DevOps platform integrates 
 - ✅ **Performance tuning** advice in real-time
 
 **Developer Benefits Shown:**
+
 - 🚀 **Zero context switching** - Get DevOps help without leaving your IDE
 - 💡 **Intelligent suggestions** - Proactive recommendations based on your code
 - 📚 **Instant knowledge** - Access to best practices and documentation
@@ -35,13 +38,15 @@ This video provides an in-depth look at how our Auto-DevOps platform integrates 
 
 ### **2. 🌐 Web Portal Experience** *(Minutes 5:30 - 10:00)*
 
-**Comprehensive Management Interface**
+#### Comprehensive Management Interface
+
 - **Dashboard overview** of entire infrastructure health
 - **Interactive monitoring** with real-time metrics
 - **Historical analytics** and performance trends
 - **Team collaboration** features and knowledge sharing
 
 **Portal Features Demonstrated:**
+
 - 📊 **Live Infrastructure Dashboards**
   - Real-time system metrics and alerts
   - Resource utilization and capacity planning
@@ -64,7 +69,7 @@ This video provides an in-depth look at how our Auto-DevOps platform integrates 
 
 ### **3. 💬 Slack Integration Showcase** *(Minutes 10:00 - 15:00)*
 
-**Seamless Team Communication**
+#### Seamless Team Communication
 - **Natural conversation** with Jamie in Slack channels
 - **Alert management** and incident response workflows
 - **Team collaboration** on infrastructure issues
@@ -149,11 +154,7 @@ After watching the video, experience the platform firsthand:
 3. **Schedule a consultation** to discuss implementation for your team
 4. **Request a custom demo** tailored to your specific infrastructure
 
----
-
-## 📞 **Questions After Watching?**
-
-**Ready to implement this for your team?**
+#### Ready to implement this for your team?
 
 - 📧 **Email**: bruno@lucena.cloud
 - 📞 **Phone**: 55-81991319220
