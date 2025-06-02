@@ -40,4 +40,18 @@ structlog>=23.2.0
 sentry-sdk>=1.38.0
 
 # MongoDB for RAG memory system
-motor==3.3.2 
+motor==3.3.2
+
+# Observability & Monitoring (NEW)
+prometheus-client==0.19.0   # Prometheus metrics
+prometheus-fastapi-instrumentator==6.1.0  # FastAPI metrics integration
+opentelemetry-api==1.21.0   # OpenTelemetry tracing API
+opentelemetry-sdk==1.21.0   # OpenTelemetry SDK
+opentelemetry-exporter-otlp==1.21.0     # OTLP exporter (for Tempo and other backends)
+opentelemetry-instrumentation-fastapi==0.42b0  # FastAPI auto-instrumentation
+opentelemetry-instrumentation-httpx==0.42b0    # HTTPX instrumentation
+opentelemetry-instrumentation-pymongo==0.42b0  # MongoDB instrumentation
+opentelemetry-instrumentation-redis==0.42b0    # Redis instrumentation
+opentelemetry-instrumentation-logging==0.42b0  # Logging instrumentation
+colorlog==6.8.0             # Colored logging output
+loguru==0.7.2               # Enhanced logging with better formatting 

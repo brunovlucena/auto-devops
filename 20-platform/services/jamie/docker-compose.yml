@@ -11,8 +11,18 @@ services:
       - JAMIE_MODEL=llama3.1:8b
       - JAMIE_MEMORY_DIR=/app/jamie_memory
       - JAMIE_LOG_LEVEL=INFO
+      - JAMIE_LOG_FORMAT=json
+      - JAMIE_METRICS_ENABLED=true
+      - JAMIE_TRACING_ENABLED=true
+      - JAMIE_TRACING_ENDPOINT=http://tempo:4317
+      - JAMIE_SERVICE_NAME=jamie-devops-copilot
+      - JAMIE_MONGODB_URL=mongodb://jamie:jamie_pass@mongodb:27017/jamie_rag
+      - JAMIE_REDIS_URL=redis://redis:6379
     depends_on:
       - ollama
+      - mongodb
+      - redis
+      - tempo
     volumes:
       - jamie_memory:/app/jamie_memory
     networks:
@@ -45,7 +55,7 @@ services:
         wait
       "
 
-  # Redis for session management (future use)
+  # Redis for session management
   redis:
     image: redis:7-alpine
     ports:
@@ -57,7 +67,7 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes
 
-  # MongoDB for vector storage (future use)
+  # MongoDB for vector storage
   mongodb:
     image: mongo:7
     ports:
@@ -71,11 +81,65 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=jamie
       - MONGO_INITDB_ROOT_PASSWORD=jamie_pass
 
+  # Tempo - Distributed Tracing
+  tempo:
+    image: grafana/tempo:2.3.1
+    ports:
+      - "3200:3200"    # Tempo HTTP API
+      - "4317:4317"    # OTLP gRPC receiver
+      - "4318:4318"    # OTLP HTTP receiver
+    volumes:
+      - ./observability/tempo.yml:/etc/tempo/tempo.yml
+      - tempo_data:/var/tempo
+    command: ["-config.file=/etc/tempo/tempo.yml"]
+    networks:
+      - jamie_network
+    restart: unless-stopped
+
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - jamie_network
+    restart: unless-stopped
+
+  # Grafana - Metrics Visualization
+  grafana:
+    image: grafana/grafana:10.2.2
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=jamie123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - jamie_network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
 volumes:
   jamie_memory:
   ollama_data:
   redis_data:
   mongodb_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   jamie_network:
