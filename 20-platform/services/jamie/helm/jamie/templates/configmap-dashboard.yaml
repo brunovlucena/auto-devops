@@ -1,0 +1,13 @@
+{{- if .Values.monitoring.dashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "jamie.fullname" . }}-dashboard
+  labels:
+    {{- include "jamie.labels" . | nindent 4 }}
+    app.kubernetes.io/component: monitoring
+    grafana_dashboard: "1"
+data:
+  jamie-dashboard.json: |
+{{ .Files.Get "dashboards/jamie-dashboard.json" | indent 4 }}
+{{- end }} 

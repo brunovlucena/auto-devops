@@ -7,7 +7,7 @@ Welcome to Jamie's comprehensive observability documentation! This guide covers 
 Jamie comes with enterprise-grade observability features out of the box:
 
 - **📈 Prometheus Metrics** - Custom metrics for AI operations, chat interactions, and system health
-- **🔍 Distributed Tracing** - OpenTelemetry-based tracing with Jaeger integration
+- **🔍 Distributed Tracing** - OpenTelemetry-based tracing with Tempo integration
 - **📝 Enhanced Logging** - Structured logging with correlation IDs and multiple output formats
 - **📊 Grafana Dashboards** - Pre-built dashboards for monitoring Jamie's performance
 - **🚨 Health Checks** - Comprehensive health monitoring and alerting
@@ -22,8 +22,8 @@ Jamie comes with enterprise-grade observability features out of the box:
          │                                              │
          ▼                                              │
 ┌─────────────────┐                                     │
-│     Jaeger      │◀────────────────────────────────────┘
-│   (Port 16686)  │
+│     Tempo       │◀────────────────────────────────────┘
+│   (Port 3200)   │
 └─────────────────┘
 ```
 
@@ -91,7 +91,7 @@ Jamie uses OpenTelemetry for distributed tracing with automatic instrumentation.
 ```bash
 # Environment variables
 JAMIE_TRACING_ENABLED=true
-JAMIE_TRACING_ENDPOINT=http://jaeger:14268/api/traces
+JAMIE_TRACING_ENDPOINT=http://tempo:4317
 JAMIE_SERVICE_NAME=jamie-devops-copilot
 JAMIE_TRACING_SAMPLE_RATE=1.0
 ```
@@ -228,7 +228,7 @@ curl http://localhost:8000/observability/metrics/summary
    - Jamie API: http://localhost:8000
    - Prometheus: http://localhost:9090
    - Grafana: http://localhost:3000 (admin/jamie123)
-   - Jaeger UI: http://localhost:16686
+   - Tempo UI: http://localhost:3200
 
 3. **Generate Some Data**
    ```bash
@@ -241,7 +241,7 @@ curl http://localhost:8000/observability/metrics/summary
 4. **View Metrics**
    - Raw metrics: http://localhost:8000/metrics
    - Grafana dashboard: http://localhost:3000
-   - Traces: http://localhost:16686
+   - Traces: http://localhost:3200
 
 ## 🔧 Configuration
 
@@ -258,7 +258,7 @@ JAMIE_METRICS_PATH=/metrics
 JAMIE_METRICS_PORT=9090
 
 # Distributed tracing
-JAMIE_TRACING_ENDPOINT=http://jaeger:14268/api/traces
+JAMIE_TRACING_ENDPOINT=http://tempo:4317
 JAMIE_SERVICE_NAME=jamie-devops-copilot
 JAMIE_TRACING_SAMPLE_RATE=1.0
 
@@ -327,7 +327,7 @@ groups:
 ### Common Issues
 
 1. **No Metrics** - Check if metrics are enabled and endpoint is accessible
-2. **Missing Traces** - Verify Jaeger is running and tracing is enabled
+2. **Missing Traces** - Verify Tempo is running and tracing is enabled
 3. **Log Issues** - Check log format configuration and permissions
 4. **Dashboard Empty** - Ensure Prometheus is scraping Jamie metrics
 
@@ -359,7 +359,7 @@ curl http://localhost:9090/api/v1/targets
 
 - [Prometheus Documentation](https://prometheus.io/docs/)
 - [Grafana Documentation](https://grafana.com/docs/)
-- [Jaeger Documentation](https://www.jaegertracing.io/docs/)
+- [Tempo Documentation](https://tempo.io/docs/)
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
 - [Loguru Documentation](https://loguru.readthedocs.io/)
 

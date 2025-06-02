@@ -1,0 +1,48 @@
+mongodb:
+  enabled: true
+  image:
+    repository: mongo
+    tag: "7"
+    pullPolicy: IfNotPresent
+  
+  auth:
+    enabled: true
+    rootUser: jamie
+    rootPassword: jamie_pass
+    usernames: 
+      - jamie
+    passwords:
+      - jamie_pass
+    databases:
+      - jamie_rag
+  
+  service:
+    type: ClusterIP
+    ports:
+      mongodb: 27017
+  
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+  # Additional MongoDB configuration
+  replicaCount: 1
+  
+  # Security context
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+  
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001
+    runAsNonRoot: true 

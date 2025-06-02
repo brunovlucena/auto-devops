@@ -1,0 +1,14 @@
+apiVersion: v2
+name: redis
+description: A Helm chart for deploying Redis for session management
+
+type: application
+
+version: 0.1.0
+
+appVersion: "7-alpine"
+
+dependencies:
+  - name: redis
+    version: 18.19.4
+    repository: https://charts.bitnami.com/bitnami 

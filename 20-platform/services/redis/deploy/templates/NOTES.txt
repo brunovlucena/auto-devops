@@ -1,0 +1,14 @@
+1. Redis has been deployed for session management!
+
+2. Redis is configured without authentication for internal cluster use.
+
+3. To connect to Redis from within the cluster:
+   redis://{{ include "redis.fullname" . }}-master:6379
+
+4. To connect from outside the cluster, port-forward:
+   kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "redis.fullname" . }}-master 6379:6379
+   
+   Then connect using: redis://localhost:6379
+
+5. To check Redis status:
+   kubectl exec -it --namespace {{ .Release.Namespace }} $(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name=redis,app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}") -- redis-cli ping 

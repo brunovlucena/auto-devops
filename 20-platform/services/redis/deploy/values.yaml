@@ -1,0 +1,46 @@
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  
+  # Authentication
+  auth:
+    enabled: false
+  
+  service:
+    type: ClusterIP
+    ports:
+      redis: 6379
+  
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
+      storageClass: ""
+    
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  
+  # Redis configuration
+  architecture: standalone
+  
+  # Security context
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+  
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001
+    runAsNonRoot: true
+  
+  # Disable replica for session management use case
+  replica:
+    replicaCount: 0 

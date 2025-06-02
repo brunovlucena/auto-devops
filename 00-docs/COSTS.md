@@ -24,13 +24,17 @@ Assessment & Architecture: $15,000
 
 Core Implementation: $35,000
   - Kubernetes cluster setup and configuration
-  - Jamie and Scarlet deployment
+  - Jamie AI Copilot deployment (2 vCPU, 4GB RAM)
+  - MongoDB deployment (1 vCPU, 1GB RAM, 5GB storage)
+  - Redis cache layer (200m CPU, 256MB RAM)
+  - Ollama LLM service (2 vCPU, 4GB RAM, 10GB storage)
   - Database and monitoring infrastructure
   - Security controls and access management
 
 Integration & Training: $15,000
   - Chat platform integration (Slack/Teams)
   - External tool connections (Jira, GitHub, etc.)
+  - Jamie AI training and knowledge base setup
   - Team training and knowledge transfer
   - Custom workflow development
 
@@ -42,7 +46,7 @@ Optimization & Launch: $10,000
 
 Total Investment: $75,000
 Timeline: 8 weeks
-Team: Senior DevOps + Platform Engineer
+Team: Senior DevOps + Platform Engineer + AI Specialist
 ```
 
 #### **Large Enterprise** *(150-500 Engineers)*
@@ -55,6 +59,10 @@ Assessment & Architecture: $25,000
 
 Core Implementation: $75,000
   - High-availability cluster deployment
+  - Jamie AI Copilot (4 vCPU, 8GB RAM, HA setup)
+  - MongoDB cluster (2 vCPU, 4GB RAM, 20GB storage)
+  - Redis cluster (500m CPU, 512MB RAM per node)
+  - Ollama LLM farm (8 vCPU, 16GB RAM, 50GB storage)
   - Custom agent training and optimization
   - Enterprise-grade monitoring setup
   - Advanced security implementation
@@ -62,6 +70,7 @@ Core Implementation: $75,000
 Integration & Training: $30,000
   - Multi-platform chat integration
   - Complex tool ecosystem connections
+  - Advanced Jamie AI customization
   - Comprehensive team training program
   - Advanced workflow automation
 
@@ -73,7 +82,7 @@ Optimization & Launch: $20,000
 
 Total Investment: $150,000
 Timeline: 8-10 weeks  
-Team: Senior DevOps + Platform Engineer + Security Specialist
+Team: Senior DevOps + Platform Engineer + AI Specialist + Security Specialist
 ```
 
 ### **Ongoing Partnership** *(Monthly Support)*
@@ -85,15 +94,17 @@ Monthly Investment: $15,000
 Included Services:
   Platform Monitoring:
     - 24/7 system health monitoring
-    - Performance optimization
+    - Jamie AI performance optimization
     - Security updates and patching
     - Capacity planning recommendations
+    - Monthly AI model updates
 
   Technical Support:
     - Monthly check-in sessions
     - Technical troubleshooting support
     - Feature updates and enhancements
     - Best practices consulting
+    - Jamie knowledge base maintenance
 
   ROI Tracking:
     - Monthly performance reports
@@ -112,24 +123,79 @@ Enhanced Services:
     - Predictive analytics and alerting
     - Custom dashboard development
     - Advanced performance tuning
+    - AI model fine-tuning
 
   Strategic Partnership:
     - Dedicated customer success manager
     - Quarterly strategic reviews
-    - Custom feature development
+    - Custom AI feature development
     - Priority technical support
+    - Advanced Jamie customizations
 
   Extended Training:
     - New team member onboarding
     - Advanced feature training
     - Custom workflow development
     - Leadership reporting and insights
+    - AI best practices workshops
 
   Compliance & Security:
     - Regular security assessments
     - Compliance reporting and audits
     - Advanced threat monitoring
     - Incident response support
+```
+
+---
+
+## 📊 **Infrastructure Cost Analysis**
+
+### **Monthly Infrastructure Costs** *(New with Jamie AI)*
+
+#### **Core Jamie Stack Resources**
+```yaml
+Jamie AI Copilot:
+  CPU: 1-2 vCPU (0.5-1 vCPU baseline)
+  Memory: 2-4GB RAM
+  Storage: 5GB (conversation history)
+  Cloud Cost: $80-160/month
+
+MongoDB (Jamie's Memory):
+  CPU: 0.25-0.5 vCPU
+  Memory: 512MB-1GB RAM  
+  Storage: 5-20GB (vector embeddings)
+  Cloud Cost: $40-120/month
+
+Redis (Session Cache):
+  CPU: 100-200m vCPU
+  Memory: 128-512MB RAM
+  Storage: 1GB cache
+  Cloud Cost: $20-50/month
+
+Ollama LLM Service:
+  CPU: 1-4 vCPU (model inference)
+  Memory: 2-8GB RAM
+  Storage: 10-50GB (models)
+  Cloud Cost: $150-600/month
+
+Total AI Infrastructure: $290-930/month
+```
+
+#### **Complete Platform Costs** *(Including Existing Services)*
+```yaml
+Small-Medium Enterprise:
+  Jamie AI Stack: $290-450/month
+  Monitoring Stack: $200-400/month
+  Kubernetes Cluster: $500-800/month
+  Total Monthly: $990-1,650/month
+  Annual: $11,880-19,800/month
+
+Large Enterprise:
+  Jamie AI Stack: $600-930/month
+  Monitoring Stack: $400-800/month
+  Kubernetes Cluster: $1,200-2,000/month
+  Total Monthly: $2,200-3,730/month
+  Annual: $26,400-44,760/month
 ```
 
 ---

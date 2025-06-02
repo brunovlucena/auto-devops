@@ -1,0 +1,19 @@
+apiVersion: v2
+name: jamie
+description: Jamie AI DevOps Copilot - Helm Chart for Kubernetes deployment
+type: application
+version: 0.1.0
+appVersion: "2.0.0"
+keywords:
+  - ai
+  - devops
+  - copilot
+  - monitoring
+  - observability
+  - llm
+home: https://github.com/your-org/jamie
+sources:
+  - https://github.com/your-org/jamie
+maintainers:
+  - name: DevOps Team
+    email: devops@yourcompany.com

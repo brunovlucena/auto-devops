@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jamie.fullname" . }}
+  labels:
+    {{- include "jamie.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.jamie.replicas }}
+  selector:
+    matchLabels:
+      {{- include "jamie.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        {{- include "jamie.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.security.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: jamie
+          image: "{{ .Values.jamie.image.repository }}:{{ .Values.jamie.image.tag }}"
+          imagePullPolicy: {{ .Values.jamie.image.pullPolicy }}
+          {{- with .Values.security.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.jamie.service.targetPort }}
+              protocol: TCP
+          env:
+            # Core configuration
+            - name: JAMIE_HOST
+              value: "0.0.0.0"
+            - name: JAMIE_PORT
+              value: "{{ .Values.jamie.service.targetPort }}"
+            - name: JAMIE_LOG_LEVEL
+              value: "{{ .Values.jamie.config.logLevel }}"
+            - name: JAMIE_LOG_FORMAT
+              value: "{{ .Values.jamie.config.logFormat }}"
+            - name: JAMIE_DEBUG
+              value: "{{ .Values.jamie.config.debug }}"
+            
+            # AI configuration
+            - name: JAMIE_MODEL
+              value: "{{ .Values.jamie.config.ai.model }}"
+            - name: JAMIE_TEMPERATURE
+              value: "{{ .Values.jamie.config.ai.temperature }}"
+            - name: JAMIE_MAX_TOKENS
+              value: "{{ .Values.jamie.config.ai.maxTokens }}"
+            - name: OLLAMA_HOST
+              value: {{ include "jamie.ollama.url" . | quote }}
+            
+            # Database connections
+            - name: JAMIE_MONGODB_URL
+              value: {{ include "jamie.mongodb.url" . | quote }}
+            - name: JAMIE_REDIS_URL
+              value: {{ include "jamie.redis.url" . | quote }}
+            
+            # Observability configuration
+            - name: JAMIE_METRICS_ENABLED
+              value: "{{ .Values.jamie.config.observability.metrics.enabled }}"
+            - name: JAMIE_METRICS_PATH
+              value: "{{ .Values.jamie.config.observability.metrics.path }}"
+            - name: JAMIE_TRACING_ENABLED
+              value: "{{ .Values.jamie.config.observability.tracing.enabled }}"
+            - name: JAMIE_TRACING_ENDPOINT
+              value: {{ include "jamie.tempo.endpoint" . | quote }}
+            - name: JAMIE_SERVICE_NAME
+              value: "{{ .Values.jamie.config.observability.tracing.serviceName }}"
+            - name: JAMIE_TRACING_SAMPLE_RATE
+              value: "{{ .Values.jamie.config.observability.tracing.sampleRate }}"
+            - name: JAMIE_LOG_STRUCTURED
+              value: "{{ .Values.jamie.config.observability.logging.structured }}"
+            - name: JAMIE_LOG_CORRELATION
+              value: "{{ .Values.jamie.config.observability.logging.correlationId }}"
+          
+          {{- if .Values.jamie.healthcheck.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.jamie.healthcheck.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.jamie.healthcheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jamie.healthcheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.jamie.healthcheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.jamie.healthcheck.failureThreshold }}
+          
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.jamie.healthcheck.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.jamie.healthcheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jamie.healthcheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.jamie.healthcheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.jamie.healthcheck.failureThreshold }}
+          {{- end }}
+          
+          resources:
+            {{- toYaml .Values.jamie.resources | nindent 12 }}
+          
+          volumeMounts:
+            - name: jamie-memory
+              mountPath: /app/jamie_memory
+            {{- if .Values.security.securityContext.readOnlyRootFilesystem }}
+            - name: tmp
+              mountPath: /tmp
+            {{- end }}
+      
+      volumes:
+        - name: jamie-memory
+          emptyDir: {}
+        {{- if .Values.security.securityContext.readOnlyRootFilesystem }}
+        - name: tmp
+          emptyDir: {}
+        {{- end }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 

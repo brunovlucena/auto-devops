@@ -58,18 +58,20 @@ This document outlines the technical requirements and implementation specificati
     - Load balancer capability
 
   Resource Allocation:
-    Jamie Agent: 2 vCPU, 8GB RAM, 50GB storage
-    Scarlet Agent: 4 vCPU, 16GB RAM, 100GB storage
+    Jamie AI Copilot: 1-2 vCPU, 2-4GB RAM, 5GB storage
+    Ollama LLM Service: 2-4 vCPU, 4-8GB RAM, 10-50GB storage
+    MongoDB (Jamie Memory): 0.5 vCPU, 1GB RAM, 5-20GB storage
+    Redis (Session Cache): 200m vCPU, 256MB RAM, 1GB storage
     Monitoring Stack: 4 vCPU, 16GB RAM, 200GB storage
-    Database Layer: 2 vCPU, 8GB RAM, 100GB storage
     Buffer for Growth: 25% overhead recommended
 
 Development/Staging Environment:
   Minimum Viable Setup:
-    - Single node K8s (4 vCPU, 16GB RAM)
-    - Docker Desktop with 8GB+ RAM allocation
-    - 50GB+ free disk space
+    - Single node K8s (8 vCPU, 24GB RAM)
+    - Docker Desktop with 16GB+ RAM allocation
+    - 100GB+ free disk space (for AI models)
     - Internet connectivity for model downloads
+    - GPU support recommended (optional)
 ```
 
 ### **Supported Deployment Options**
@@ -78,27 +80,27 @@ Development/Staging Environment:
   AWS (EKS): 
     - Preferred for enterprise clients
     - Native integration with AWS services
-    - Estimated cost: $2,000-5,000/month
+    - Estimated cost: $2,500-6,000/month (including AI stack)
   
   Google Cloud (GKE):
     - Excellent for AI/ML workloads
     - Strong monitoring capabilities
-    - Estimated cost: $2,200-5,500/month
+    - Estimated cost: $2,700-6,500/month (including AI stack)
   
   Azure (AKS):
     - Ideal for Microsoft-centric environments
     - Teams integration advantages
-    - Estimated cost: $2,100-5,200/month
+    - Estimated cost: $2,600-6,200/month (including AI stack)
 
 🏢 On-Premises Options:
   VMware vSphere: Full support with our deployment team
   OpenStack: Supported with additional configuration
-  Bare Metal: Custom deployment available
+  Bare Metal: Custom deployment available (GPU recommended)
 
 🖥️ Hybrid Solutions:
   Multi-cloud setups supported
   Edge deployments for distributed teams
-  Air-gapped environments (special configuration)
+  Air-gapped environments (special AI model configuration)
 ```
 
 ---
@@ -116,45 +118,49 @@ Development/Staging Environment:
     └── Application deployment automation
 
 🤖 AI/ML Infrastructure:
+  Jamie AI Copilot: Latest stable release
+    └── British DevOps personality with live tool access
   Ollama: Latest stable release
-    └── Model management and optimization
-  Python Runtime: 3.11+ with custom optimizations
+    └── Local LLM inference (Llama 3.1:8b model)
   MongoDB: 7.0+ with Vector Search configured
-  PostgreSQL: 15+ with performance tuning
+    └── Conversation memory and embeddings
+  Redis: 7.0+ (session management and caching)
+  Python Runtime: 3.11+ with AI optimizations
 
 📊 Monitoring & Observability:
   Prometheus: v2.40+ (metrics collection)
-  Grafana: v9.0+ (custom dashboards)
+  Grafana: v9.0+ (custom dashboards + Jamie integration)
   Loki: v2.8+ (centralized logging)
   Tempo: v2.2+ (distributed tracing)
   AlertManager: Enterprise alerting rules
 
 🔌 Integration Layer:
   Model Context Protocol (MCP): Latest
+    └── Real-time DevOps tool integration
   FastAPI: 0.100+ (high-performance APIs)
-  Redis: 7.0+ (caching & session management)
-  WebSocket: Real-time communication
+  WebSocket: Real-time chat communication
+  Next.js: 14+ (Jamie web portal)
 ```
 
 ### **Client Integration Requirements**
 ```yaml
 🔗 Existing System Connections:
   Chat Platforms:
-    - Slack: Admin access for bot installation
+    - Slack: Admin access for Jamie bot installation
     - Microsoft Teams: Tenant admin permissions
     - Discord: Server admin rights (if applicable)
 
-  Monitoring Systems:
+  DevOps Tools (Jamie Integration):
+    - Kubernetes: Cluster admin access for MCP servers
     - Prometheus: Endpoint access and query permissions
+    - Loki: Log access and streaming capabilities
+    - Tempo: Tracing data access
+    - GitHub/GitLab: Repository access for deployment correlation
+
+  Monitoring Systems:
     - DataDog: API keys and metric access
     - New Relic: Integration credentials
     - Custom tools: API documentation required
-
-  Development Tools:
-    - GitHub/GitLab: Organization admin access
-    - Jira: Project admin permissions
-    - PagerDuty: Service integration setup
-    - CI/CD: Pipeline integration planning
 ```
 
 ---

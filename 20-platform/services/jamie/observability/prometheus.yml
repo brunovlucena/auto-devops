@@ -34,10 +34,10 @@ scrape_configs:
     metrics_path: '/metrics'
     scrape_interval: 30s
 
-  # Jaeger metrics
-  - job_name: 'jaeger'
+  # Tempo metrics
+  - job_name: 'tempo'
     static_configs:
-      - targets: ['jaeger:16686']
+      - targets: ['tempo:3200']
     metrics_path: '/metrics'
     scrape_interval: 30s
 

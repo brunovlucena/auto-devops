@@ -1,0 +1,133 @@
+# Jamie AI DevOps Copilot - Helm Values
+# Default values for jamie deployment
+
+# Jamie application configuration
+jamie:
+  image:
+    repository: jamie/devops-copilot
+    tag: "2.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicas: 1
+  
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: jamie.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  
+  # Environment configuration
+  config:
+    logLevel: INFO
+    logFormat: json
+    debug: false
+    
+    # AI configuration
+    ai:
+      model: "llama3.1:8b"
+      temperature: 0.7
+      maxTokens: 2048
+    
+    # Observability settings
+    observability:
+      metrics:
+        enabled: true
+        path: "/metrics"
+      tracing:
+        enabled: true
+        serviceName: "jamie-devops-copilot"
+        sampleRate: 1.0
+      logging:
+        structured: true
+        correlationId: true
+  
+  # Resource limits
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  
+  # Health checks
+  healthcheck:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Ollama LLM service
+ollama:
+  enabled: true
+  image:
+    repository: ollama/ollama
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 11434
+  
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+
+# Global settings
+global:
+  storageClass: ""
+  
+# Monitoring and alerting
+monitoring:
+  enabled: true
+  
+  # ServiceMonitor for Prometheus Operator
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+  
+  # Grafana dashboards
+  dashboards:
+    enabled: true
+    # Dashboard will be created from ConfigMap
+
+# Security settings
+security:
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+
+# Node scheduling
+nodeSelector: {}
+tolerations: []
+affinity: {} 

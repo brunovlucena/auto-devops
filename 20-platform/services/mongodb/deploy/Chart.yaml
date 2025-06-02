@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mongodb
+description: A Helm chart for deploying MongoDB for RAG storage
+
+type: application
+
+version: 0.1.0
+
+appVersion: "7"
+
+dependencies:
+  - name: mongodb
+    version: 14.8.3
+    repository: https://charts.bitnami.com/bitnami 
