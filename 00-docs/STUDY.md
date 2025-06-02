@@ -13,7 +13,7 @@
 
 - [ ] **AI Engineering**
 
-- [ ] **NeetCode**
+- [ ] **NeetCode - Python**
 
 - [ ] **LangGraph Fundamentals** *(3-4 hours)*
   - [ ] [Stanford AI Course](https://www.youtube.com/playlist?list=PLoROMvodv4rO1NB9TD4iUZ3qghGEGtqNX)
@@ -23,6 +23,9 @@
 - [ ] **Python Enhancement** *(2-3 hours)*
   - [ ] [Pydantic AI Articles](https://pydantic.dev/articles)
   - [ ] [LlamaFactory Documentation](https://llamafactory.readthedocs.io/en/latest/)
+  - [ ] OAuth
+  - [ ] JWT
+  - [ ] Ler artigos do Daniel Romero
 
 - [ ] **MCP (Model Context Protocol)** *(1-2 hours)*
   - [ ] [MCP Quickstart](https://modelcontextprotocol.io/quickstart/user)
@@ -37,12 +40,14 @@
 ## 🏗️ **INFRASTRUCTURE & DEVOPS** *(Week 3-4)*
 
 ### ⚡ **FastAPI & WebSocket** *(2-3 hours)*
+
 - [ ] **FastAPI Deep Dive**
   - [ ] Build Jamie's chat API backend
   - [ ] WebSocket implementation for real-time chat
   - [ ] Authentication and rate limiting
 
 ### 🚢 **Kubernetes & Cloud** *(4-5 hours)*
+
 - [ ] **Voice-Controlled Kubernetes**
   - [ ] [Kubevox - 200ms Kubernetes Voice Control](https://practical-engineer.ai/kubevox-sub-200ms-kubernetes-voice-control-with-local-llama-3/)
   - [ ] [Kubevox GitHub Implementation](https://github.com/PatrickKalkman/kubevox)
@@ -59,6 +64,7 @@
 ## 📊 **MONITORING & OBSERVABILITY** *(Week 5-6)*
 
 ### 🔍 **Opik & Tracing** *(2-3 hours)*
+
 - [ ] **Monitoring Setup**
   - [ ] [Opik Platform Overview](https://www.comet.com/site/products/opik/)
   - [ ] [Opik + Pydantic AI Integration](https://www.comet.com/docs/opik/tracing/integrations/pydantic-ai)
@@ -72,6 +78,7 @@
 ## 🎓 **ADVANCED AI TOPICS** *(Week 7-8)*
 
 ### 🧠 **LLM Enhancement** *(4-5 hours)*
+
 - [ ] **Fine-Tuning & Function Calling**
   - [ ] [Fine Tuning LLMs for Function Calling](https://www.youtube.com/watch?v=SEZ7j31u67A&t=3074s)
 
@@ -88,6 +95,7 @@
 ## 📚 **RESEARCH PAPERS & DEEP DIVE** *(Week 9-12, Optional)*
 
 ### 🔬 **AI Agent Research** *(Flexible timing)*
+
 - [ ] **Chain-of-Thought & Reasoning**
   - [ ] [Chain-of-Thought Reasoning Without Prompting](https://arxiv.org/abs/2203.02155)
   - [ ] [Large Language Models Cannot Self-Correct Reasoning Yet](https://arxiv.org/abs/2310.01798)
@@ -108,21 +116,25 @@
 ## ✅ **PROGRESS TRACKING**
 
 ### **Week 1-2 Goals** 
+
 - [ ] Complete LangGraph fundamentals
 - [ ] Set up MCP protocol understanding
 - [ ] Python/Pydantic skills refreshed
 
 ### **Week 3-4 Goals**
+
 - [ ] FastAPI + WebSocket mastery
 - [ ] Kubernetes AI integration knowledge
 - [ ] Voice control understanding
 
 ### **Week 5-6 Goals**
+
 - [ ] Monitoring stack proficiency
 - [ ] Vector database implementation
 - [ ] Observability patterns
 
 ### **Week 7-8 Goals**
+
 - [ ] Advanced AI techniques
 - [ ] Enterprise deployment readiness
 - [ ] Real-world application skills
@@ -132,12 +144,14 @@
 ## 🎯 **ALIGNMENT WITH AUTO-DEVOPS TODO**
 
 ### **For Jamie Development**
+
 ✅ FastAPI backend → **Week 3**  
 ✅ MongoDB Vector → **Week 5**  
 ✅ MCP Protocol → **Week 1**  
 ✅ Chat interfaces → **Week 3**
 
 ### **For Scarlet Development**
+
 ✅ LangGraph framework → **Week 1**  
 ✅ Autonomous decision-making → **Week 7**  
 ✅ Monitoring integration → **Week 5**  
@@ -148,16 +162,19 @@
 ## 📝 **DAILY STUDY ROUTINE** *(ADHD-Optimized)*
 
 ### **🌅 Morning Session** *(45-60 min)*
+
 - [ ] **Theory/Videos** (25 min focus block)
 - [ ] **5 min break**
 - [ ] **Hands-on practice** (25 min focus block)
 
 ### **🌆 Evening Session** *(30 min)*
+
 - [ ] **Review notes** (15 min)
 - [ ] **Plan tomorrow** (10 min)
 - [ ] **Update progress** (5 min)
 
 ### **📱 Micro-Learning** *(10-15 min blocks)*
+
 - [ ] Documentation reading during breaks
 - [ ] Quick video tutorials
 - [ ] GitHub repo exploration

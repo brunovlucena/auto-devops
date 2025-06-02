@@ -1,4 +1,4 @@
-name: observability
+name: auto-devops
 description: A minimal Kubernetes Go Pulumi program
 runtime: go
 config:
