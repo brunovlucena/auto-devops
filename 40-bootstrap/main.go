@@ -23,6 +23,11 @@ func main() {
 			return err
 		}
 
+		// Setup ArgoCD repository authentication
+		if err := createArgoCDRepositories(ctx, stackName); err != nil {
+			return err
+		}
+
 		// Load all ArgoCD configurations (projects and applications)
 		if err := createArgoCDProjects(ctx, stackName); err != nil {
 			return err

@@ -30,7 +30,9 @@ spec:
     server: https://kubernetes.default.svc
   - namespace: grafana-mcp
     server: https://kubernetes.default.svc
-  - namespace: linkerd
+  - namespace: istio-system
+    server: https://kubernetes.default.svc
+  - namespace: istio-ingress
     server: https://kubernetes.default.svc
   - namespace: linkerd-viz
     server: https://kubernetes.default.svc

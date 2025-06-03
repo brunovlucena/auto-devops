@@ -153,3 +153,47 @@ func createArgoCDApplications(ctx *pulumi.Context, stage string) error {
 
 	return nil
 }
+
+func createArgoCDRepositories(ctx *pulumi.Context, stage string) error {
+	// Get the current directory
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %v", err)
+	}
+
+	// Path to the ArgoCD repository YAML files - go up one level from current directory
+	repoRoot := filepath.Dir(currentDir)
+	repositoriesDir := filepath.Join(repoRoot, "20-platform", "argocd", "config", stage, "repositories")
+
+	// List of repository YAML files to apply
+	repositoryFiles := []string{}
+
+	// Walk the repositories directory and add all YAML files
+	err = filepath.Walk(repositoriesDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml") {
+			repositoryFiles = append(repositoryFiles, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		ctx.Log.Warn(fmt.Sprintf("Failed to walk repositories directory: %v", err), nil)
+	}
+
+	// Apply each repository YAML file
+	for _, file := range repositoryFiles {
+		ctx.Log.Info(fmt.Sprintf("Applying ArgoCD repository authentication from %s", file), nil)
+
+		cmd := exec.Command("kubectl", "apply", "-f", file)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to apply ArgoCD repository from %s: %v", file, err)
+		}
+	}
+
+	return nil
+}
