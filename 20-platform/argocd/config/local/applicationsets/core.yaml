@@ -1,0 +1,35 @@
+# TODO: nginx
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "nginx-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "nginx-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "nginx-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "nginx-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "nginx-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nginx
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/nginx/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: nginx
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml

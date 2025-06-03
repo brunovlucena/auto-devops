@@ -25,7 +25,7 @@ spec:
     syncOptions:
       - CreateNamespace=false
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/rabbitmq-operator/deploy
     targetRevision: HEAD
     helm:
@@ -60,7 +60,7 @@ spec:
     syncOptions:
       - CreateNamespace=false
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/rabbitmq-cluster/deploy
     targetRevision: HEAD
     helm:

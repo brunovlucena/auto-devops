@@ -23,7 +23,7 @@ spec:
       prune: true
       selfHeal: true
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/linkerd/deploy
     targetRevision: HEAD
     helm:

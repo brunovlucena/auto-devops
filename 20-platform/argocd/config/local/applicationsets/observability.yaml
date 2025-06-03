@@ -26,7 +26,7 @@ spec:
       - CreateNamespace=false
       - ServerSideApply=true
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/alloy/deploy
     targetRevision: HEAD
     helm:
@@ -61,7 +61,7 @@ spec:
     syncOptions:
       - CreateNamespace=false
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/loki/deploy
     targetRevision: HEAD
     helm:
@@ -97,7 +97,7 @@ spec:
       - CreateNamespace=false
       - ServerSideApply=true
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/metrics-server/deploy
     targetRevision: HEAD
     helm:

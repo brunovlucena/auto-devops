@@ -25,7 +25,7 @@ spec:
     syncOptions:
       - CreateNamespace=false
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/redis/deploy
     targetRevision: HEAD
     helm:
@@ -60,7 +60,7 @@ spec:
     syncOptions:
       - CreateNamespace=false
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/mongodb/deploy
     targetRevision: HEAD
     helm:
@@ -95,7 +95,7 @@ spec:
     syncOptions:
       - CreateNamespace=false
   source:
-    repoURL: git@github.com:notifi-network/infra.git
+    repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/jamie/helm/jamie
     targetRevision: HEAD
     helm:

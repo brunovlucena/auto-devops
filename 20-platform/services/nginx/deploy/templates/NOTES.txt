@@ -1,0 +1,18 @@
+1. MongoDB has been deployed!
+
+2. You can connect to MongoDB using the following credentials:
+   - Username: jamie
+   - Password: jamie_pass
+   - Database: jamie_rag
+
+3. To connect to MongoDB from within the cluster:
+   mongodb://jamie:jamie_pass@{{ include "mongodb.fullname" . }}:27017/jamie_rag
+
+4. To get the MongoDB connection string:
+   export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace {{ .Release.Namespace }} {{ include "mongodb.secretName" . }} -o jsonpath="{.data.mongodb-root-password}" | base64 --decode)
+   echo "mongodb://jamie:$MONGODB_ROOT_PASSWORD@{{ include "mongodb.fullname" . }}:27017/jamie_rag"
+
+5. To connect from outside the cluster, port-forward:
+   kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "mongodb.fullname" . }} 27017:27017
+   
+   Then connect using: mongodb://jamie:jamie_pass@localhost:27017/jamie_rag 
