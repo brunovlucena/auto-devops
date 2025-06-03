@@ -10,5 +10,5 @@ appVersion: "1.12.1"
 
 dependencies:
   - name: cert-manager
-    version: v1.17.1
+    version: 1.5.0
     repository: https://github.com/cert-manager/cert-manager
