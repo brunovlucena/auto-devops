@@ -237,21 +237,21 @@ loki:
               periodSeconds: 1800
           stabilizationWindowSeconds: 3600
 
-    affinity:
-      podAntiAffinity: {}
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: observability
-              operator: In
-              values: ["true"]
+    # affinity:
+    #   podAntiAffinity: {}
+    #   nodeAffinity:
+    #     requiredDuringSchedulingIgnoredDuringExecution:
+    #       nodeSelectorTerms:
+    #       - matchExpressions:
+    #         - key: observability
+    #           operator: In
+    #           values: ["true"]
 
-    tolerations:
-      - key: "observability"
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
+    # tolerations:
+    #   - key: "observability"
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
 
     persistence:
       volumeClaimsEnabled: false
@@ -282,21 +282,21 @@ loki:
       targetCPUUtilizationPercentage: 60
       targetMemoryUtilizationPercentage: 80
 
-    affinity:
-      podAntiAffinity: {}
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: observability
-              operator: In
-              values: ["true"]
+    # affinity:
+    #   podAntiAffinity: {}
+    #   nodeAffinity:
+    #     requiredDuringSchedulingIgnoredDuringExecution:
+    #       nodeSelectorTerms:
+    #       - matchExpressions:
+    #         - key: observability
+    #           operator: In
+    #           values: ["true"]
 
-    tolerations:
-      - key: "observability"
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
+    # tolerations:
+    #   - key: "observability"
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
 
     # resources:
     #   requests:
