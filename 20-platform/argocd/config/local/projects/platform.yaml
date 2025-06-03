@@ -18,6 +18,8 @@ spec:
   - https://knative.github.io/operator
   - https://aws.github.io/eks-charts
   destinations:
+  - namespace: argocd
+    server: https://kubernetes.default.svc
   - namespace: prometheus
     server: https://kubernetes.default.svc
   - namespace: loki
