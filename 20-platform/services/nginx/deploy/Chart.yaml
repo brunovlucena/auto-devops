@@ -9,6 +9,6 @@ version: 0.1.0
 appVersion: "1.12.2"
 
 dependencies:
-  - name: nginx
+  - name: nginx-ingress
     version: 1.12.2
     repository: https://helm.nginx.com/stable 
