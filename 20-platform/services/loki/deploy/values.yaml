@@ -350,20 +350,20 @@ loki:
         subPath: ""
         readOnly: false
 
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: observability
-              operator: In
-              values: ["true"]
+    # affinity:
+    #   nodeAffinity:
+    #     requiredDuringSchedulingIgnoredDuringExecution:
+    #       nodeSelectorTerms:
+    #       - matchExpressions:
+    #         - key: observability
+    #           operator: In
+    #           values: ["true"]
 
-    tolerations:
-      - key: "observability"
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
+    # tolerations:
+    #   - key: "observability"
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
 
     # resources:
     #   requests:
@@ -474,19 +474,19 @@ loki:
     #     cpu: 300m
     #     memory: 2Gi
 
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: observability
-                  operator: In
-                  values: ["true"]
-    tolerations:
-      - key: "observability"
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
+    # affinity:
+    #   nodeAffinity:
+    #     requiredDuringSchedulingIgnoredDuringExecution:
+    #       nodeSelectorTerms:
+    #         - matchExpressions:
+    #             - key: observability
+    #               operator: In
+    #               values: ["true"]
+    # tolerations:
+    #   - key: "observability"
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
 
   resultsCache:
     # -- Specifies whether memcached based results-cache should be enabled
@@ -520,19 +520,19 @@ loki:
     #     cpu: 300m
     #     memory: 2048Mi
 
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: observability
-                  operator: In
-                  values: ["true"]
-    tolerations:
-      - key: "observability"
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
+    # affinity:
+    #   nodeAffinity:
+    #     requiredDuringSchedulingIgnoredDuringExecution:
+    #       nodeSelectorTerms:
+    #         - matchExpressions:
+    #             - key: observability
+    #               operator: In
+    #               values: ["true"]
+    # tolerations:
+    #   - key: "observability"
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
 
   ruler:
     enabled: true
