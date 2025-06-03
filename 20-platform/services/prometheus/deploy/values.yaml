@@ -180,20 +180,20 @@ kube-prometheus-stack:
         # Support for new table panels, when enabled grafana auto migrates the old table panels to newer table panels
         enableNewTablePanelSyntax: true # NOTE: testing
 
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: observability
-                  operator: In
-                  values: ["true"]
+    # affinity:
+    #   nodeAffinity:
+    #     requiredDuringSchedulingIgnoredDuringExecution:
+    #       nodeSelectorTerms:
+    #         - matchExpressions:
+    #             - key: observability
+    #               operator: In
+    #               values: ["true"]
 
-    tolerations:
-    - key: "observability"
-      operator: Equal
-      value: "true"
-      effect: NoSchedule
+    # tolerations:
+    # - key: "observability"
+    #   operator: Equal
+    #   value: "true"
+    #   effect: NoSchedule
 
     assertNoLeakedSecrets: false
 
@@ -325,13 +325,13 @@ kube-prometheus-stack:
       enableRemoteWriteReceiver: true
 
       affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: observability
-                    operator: In
-                    values: ["true"]
+        # nodeAffinity:
+        #   requiredDuringSchedulingIgnoredDuringExecution:
+        #     nodeSelectorTerms:
+        #       - matchExpressions:
+        #           - key: observability
+        #             operator: In
+        #             values: ["true"]
 
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -345,11 +345,11 @@ kube-prometheus-stack:
                   - S2
               topologyKey: kubernetes.io/hostname
 
-      tolerations:
-      - key: "observability"
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
+      # tolerations:
+      # - key: "observability"
+      #   operator: Equal
+      #   value: "true"
+      #   effect: NoSchedule
 
 
       # Scrape all namespaces
