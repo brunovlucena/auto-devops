@@ -23,7 +23,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
   source:
     repoURL: git@github.com:brunovlucena/auto-devops.git
     path: 20-platform/services/nginx/deploy
