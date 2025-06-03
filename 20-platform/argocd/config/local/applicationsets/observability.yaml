@@ -108,3 +108,75 @@ spec:
 ---
 # TODO: Prometheus
 # TODO: Tempo
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "prometheus-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "prometheus-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "prometheus-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "prometheus-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "prometheus-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prometheus
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/prometheus/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: prometheus
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tempo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "tempo-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "tempo-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "tempo-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "tempo-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "tempo-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tempo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/tempo/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: tempo
+      valueFiles:
+        - values.yaml
+        - overlays/dev/values-dev.yaml
