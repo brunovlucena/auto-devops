@@ -179,4 +179,4 @@ spec:
       releaseName: tempo
       valueFiles:
         - values.yaml
-        - overlays/dev/values-dev.yaml
+        - overlays/local/values-local.yaml
