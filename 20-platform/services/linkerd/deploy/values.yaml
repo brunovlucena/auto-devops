@@ -147,7 +147,7 @@ linkerd-control-plane:
     serviceAccountTokenProjection: true
 
     issuer:
-      scheme: kubernetes.io/tls
+      scheme: linkerd.io/tls
 
       # -- Amount of time to allow for clock skew within a Linkerd cluster
       clockSkewAllowance: 20s
@@ -159,10 +159,7 @@ linkerd-control-plane:
   proxyInjector:
     externalSecret: true
 
-    # -- Inject the CA bundle from a cert-manager Certificate.
-    # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
-    # for more information.
-    injectCaFrom: "certificates/linkerd-proxy-injector"
+    injectCaFromSecret: "certificates/linkerd-proxy-injector"
 
   # service profile validator configuration
   profileValidator:
@@ -171,7 +168,7 @@ linkerd-control-plane:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFrom: "certificates/linkerd-sp-validator"
+    injectFromSecret: "certificates/linkerd-sp-validator"
 
   # policy validator configuration
   policyValidator:
@@ -184,7 +181,7 @@ linkerd-control-plane:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFrom: "certificates/linkerd-policy-validator"
+    injectFromSecret: "certificates/linkerd-policy-validator"
 
   tolerations:
     - key: observability
@@ -242,4 +239,4 @@ linkerd-jaeger:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFrom: "certificates/linkerd-jaeger-webhook"
+    injectFromSecret: "certificates/linkerd-jaeger-webhook"
