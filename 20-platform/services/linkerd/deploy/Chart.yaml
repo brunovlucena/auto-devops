@@ -9,6 +9,9 @@ version: 0.1.0
 appVersion: "edge-25.6.1"
 
 dependencies:
+  - name: linkerd-crds
+    version: 2025.6.1
+    repository: https://helm.linkerd.io/edge
   - name: linkerd-control-plane
     version: 2025.6.1
     repository: https://helm.linkerd.io/edge
@@ -18,3 +21,4 @@ dependencies:
   - name: linkerd-jaeger
     version: 2025.6.1
     repository: https://helm.linkerd.io/edge
+    

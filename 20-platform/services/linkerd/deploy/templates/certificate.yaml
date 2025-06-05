@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: linkerd-identity-issuer-tls
+  namespace: linkerd
+spec:
+  secretName: linkerd-identity-issuer-tls # This is the secret that will be created
+  duration: 8760h # 1 year
+  renewBefore: 360h # 15 days
+  issuerRef:
+    name: linkerd-self-signed-issuer # Reference the Issuer/ClusterIssuer you created
+    kind: Issuer
+  commonName: identity.linkerd.cluster.local # This is crucial for Linkerd
+  isCA: true # This certificate will be used to sign other certificates
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  usages:
+    - digital signature
+    - key encipherment
+    - cert sign
