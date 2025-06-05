@@ -159,7 +159,7 @@ linkerd-control-plane:
   proxyInjector:
     externalSecret: true
 
-    injectCaFromSecret: "certificates/linkerd-proxy-injector"
+    injectCaFromSecret: "linkerd/linkerd-proxy-injector"
 
   # service profile validator configuration
   profileValidator:
@@ -168,7 +168,7 @@ linkerd-control-plane:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFromSecret: "certificates/linkerd-sp-validator"
+    injectCaFromSecret: "linkerd/linkerd-sp-validator"
 
   # policy validator configuration
   policyValidator:
@@ -181,7 +181,7 @@ linkerd-control-plane:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFromSecret: "certificates/linkerd-policy-validator"
+    injectCaFromSecret: "linkerd/linkerd-policy-validator"
 
   tolerations:
     - key: observability
@@ -239,4 +239,4 @@ linkerd-jaeger:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFromSecret: "certificates/linkerd-jaeger-webhook"
+    injectCaFromSecret: "linkerd/linkerd-jaeger-webhook"
