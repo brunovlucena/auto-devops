@@ -28,7 +28,7 @@ spec:
   duration: 8760h
   renewBefore: 360h
   issuerRef:
-    name: {{ .Values.issuer.name }}
+    name: linkerd-self-signed-issuer
     kind: Issuer
   commonName: linkerd-proxy-injector
 ---
@@ -41,7 +41,7 @@ spec:
   duration: 8760h
   renewBefore: 360h
   issuerRef:
-    name: {{ .Values.issuer.name }}
+    name: linkerd-self-signed-issuer
     kind: Issuer
   commonName: linkerd-sp-validator
 ---
@@ -54,6 +54,6 @@ spec:
   duration: 8760h
   renewBefore: 360h
   issuerRef:
-    name: {{ .Values.issuer.name }}
+    name: linkerd-self-signed-issuer
     kind: Issuer
   commonName: linkerd-policy-validator
