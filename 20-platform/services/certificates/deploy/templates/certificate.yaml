@@ -4,14 +4,14 @@ metadata:
   name: linkerd-identity-issuer
   namespace: linkerd
 spec:
-  secretName: linkerd-identity-issuer # This is the secret that will be created
+  secretName: linkerd-identity-issuer
   duration: 8760h # 1 year
   renewBefore: 360h # 15 days
   issuerRef:
     name: linkerd-self-signed-issuer
     kind: Issuer
   commonName: linkerd-identity-issuer
-
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
