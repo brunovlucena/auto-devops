@@ -26,7 +26,7 @@ metadata:
   name: linkerd-proxy-injector
   namespace: linkerd
 spec:
-  secretName: linkerd-proxy-injector
+  secretName: linkerd-proxy-injector-k8s-tls
   duration: 8760h
   renewBefore: 360h
   issuerRef:
@@ -40,7 +40,7 @@ metadata:
   name: linkerd-sp-validator
   namespace: linkerd
 spec:
-  secretName: linkerd-sp-validator
+  secretName: linkerd-sp-validator-k8s-tls
   duration: 8760h
   renewBefore: 360h
   issuerRef:
@@ -54,7 +54,7 @@ metadata:
   name: linkerd-policy-validator
   namespace: linkerd
 spec:
-  secretName: linkerd-policy-validator
+  secretName: linkerd-policy-validator-k8s-tls
   duration: 8760h
   renewBefore: 360h
   issuerRef:
