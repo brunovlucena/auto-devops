@@ -181,19 +181,16 @@ linkerd-control-plane:
   proxyInjector:
     externalSecret: false
 
-    injectCaFromSecret: "linkerd/linkerd-proxy-injector-k8s-tls"
 
   # service profile validator configuration
   profileValidator:
     externalSecret: false
 
-    injectCaFromSecret: "linkerd/linkerd-sp-validator-k8s-tls"
 
   # policy validator configuration
   policyValidator:
     externalSecret: false
 
-    injectCaFromSecret: "linkerd/linkerd-policy-validator-k8s-tls"
 
   tolerations:
     - key: observability
