@@ -123,3 +123,25 @@ spec:
   - digital signature
   - key encipherment
   - server auth
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: linkerd-identity-trust-roots
+  namespace: linkerd
+  labels:
+    linkerd.io/control-plane-component: identity
+    linkerd.io/control-plane-ns: linkerd
+data:
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIBjjCCATSgAwIBAgIQdZeGNuAHZhXSmb+rUjwMkTAKBggqhkjOPQQDAjAlMSMw
+    IQYDVQQDExpyb290LmxpbmtlcmQuY2x1c3Rlci5sb2NhbDAeFw0yNTA2MDUyMzE2
+    MzJaFw0zNTA2MDMyMzE2MzJaMCUxIzAhBgNVBAMTGnJvb3QubGlua2VyZC5jbHVz
+    dGVyLmxvY2FsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWkgAK7AuDmBHwkKN
+    VTJuZX6SQG9+FLz4IoJxgYhV+LPxK8nCULkxM4VK5H3KP2Nz3RqVc2r4DqG4Ucy9
+    yEAo8qNFMEMwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYD
+    VR0OBBYEFOI1qWUoWIsq6ybLrJkB6lJ9dW2hMAoGCCqGSM49BAMCA0gAMEUCIBLW
+    s6PjmFpnzEEuVV8xRw4K8QKnD2hJ9Qj3Fqd6PSdOAiEAyOKhJMwvVyT6pEjZzB4K
+    xr3DGHs4UoJy5K2nF8xJ2Rw=
+    -----END CERTIFICATE-----
