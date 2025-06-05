@@ -6,10 +6,76 @@ metadata:
   labels:
     linkerd.io/control-plane-component: identity
     linkerd.io/control-plane-ns: linkerd
-  annotations:
-    # This annotation tells cert-manager's CA injector to populate ca-bundle.crt
-    # with the CA certificate from the specified Certificate resource
-    cert-manager.io/inject-ca-from: linkerd/linkerd-identity-issuer
 data:
-  # This will be automatically populated by cert-manager's CA injector
-  ca-bundle.crt: "" 
+  # This will be populated by the ca-injector job below
+  ca-bundle.crt: ""
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: linkerd-ca-injector
+  namespace: linkerd
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    metadata:
+      name: linkerd-ca-injector
+    spec:
+      serviceAccountName: linkerd-ca-injector
+      restartPolicy: Never
+      containers:
+      - name: ca-injector
+        image: bitnami/kubectl:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Waiting for linkerd-identity-issuer secret to be ready..."
+          kubectl wait --for=condition=Ready certificate linkerd-identity-issuer -n linkerd --timeout=300s
+          
+          echo "Extracting CA certificate from secret..."
+          CA_CERT=$(kubectl get secret linkerd-identity-issuer -n linkerd -o jsonpath='{.data.ca\.crt}' | base64 -d)
+          
+          echo "Updating ConfigMap with CA certificate..."
+          kubectl patch configmap linkerd-identity-trust-roots -n linkerd --patch="{\"data\":{\"ca-bundle.crt\":\"$CA_CERT\"}}"
+          
+          echo "CA certificate successfully injected into ConfigMap"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: linkerd-ca-injector
+  namespace: linkerd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: linkerd-ca-injector
+  namespace: linkerd
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "patch"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+- apiGroups: ["cert-manager.io"]
+  resources: ["certificates"]
+  verbs: ["get", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: linkerd-ca-injector
+  namespace: linkerd
+subjects:
+- kind: ServiceAccount
+  name: linkerd-ca-injector
+  namespace: linkerd
+roleRef:
+  kind: Role
+  name: linkerd-ca-injector
+  apiGroup: rbac.authorization.k8s.io 
