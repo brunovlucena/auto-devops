@@ -193,3 +193,53 @@ linkerd-control-plane:
 
   # -- url of external prometheus instance (used for the heartbeat)
   prometheusUrl: "prometheus-kube-prometheus-prometheus.prometheus:9090"
+
+linkerd-jaeger:
+
+  collector:
+    # -- OpenTelemetry Collector config, See the
+    # [Configuration docs](https://opentelemetry.io/docs/collector/configuration/)
+    # for more information
+    # @default -- see `value.yaml` for actual configuration
+    config: |
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+            http:
+        opencensus:
+        zipkin:
+        jaeger:
+          protocols:
+            grpc:
+            thrift_http:
+            thrift_compact:
+            thrift_binary:
+      processors:
+        batch:
+      extensions:
+        health_check:
+      exporters:
+        otlp:
+          endpoint: tempo-distributor.tempo:3100
+          tls:
+            insecure: true
+      service:
+        extensions: [health_check]
+        pipelines:
+          traces:
+            receivers: [otlp,opencensus,zipkin,jaeger]
+            processors: [batch]
+            exporters: [jaeger]
+
+  webhook:
+    # -- Do not create a secret resource for the webhook.
+    # If this is set to `true`, the value `webhook.caBundle` must be set
+    # or the ca bundle must injected with cert-manager ca injector using
+    # `webhook.injectCaFrom` or `webhook.injectCaFromSecret` (see below).
+    externalSecret: true
+
+    # -- Inject the CA bundle from a cert-manager Certificate.
+    # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
+    # for more information.
+    injectCaFrom: "certificates/linkerd-jaeger-webhook"

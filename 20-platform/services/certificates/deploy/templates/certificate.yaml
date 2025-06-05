@@ -57,3 +57,15 @@ spec:
     name: linkerd-self-signed-issuer
     kind: Issuer
   commonName: linkerd-policy-validator
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: linkerd-jaeger-webhook
+spec:
+  secretName: linkerd-jaeger-webhook
+  duration: 8760h
+  renewBefore: 360h
+  issuerRef:
+    name: linkerd-self-signed-issuer
+    kind: Issuer
