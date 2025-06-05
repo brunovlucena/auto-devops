@@ -147,7 +147,7 @@ linkerd-control-plane:
     serviceAccountTokenProjection: true
 
     issuer:
-      scheme: linkerd.io/tls
+      scheme: kubernetes.io/tls
 
       # -- Amount of time to allow for clock skew within a Linkerd cluster
       clockSkewAllowance: 20s
