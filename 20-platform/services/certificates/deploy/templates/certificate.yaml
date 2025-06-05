@@ -69,3 +69,4 @@ spec:
   issuerRef:
     name: linkerd-self-signed-issuer
     kind: Issuer
+  commonName: linkerd-jaeger-webhook
