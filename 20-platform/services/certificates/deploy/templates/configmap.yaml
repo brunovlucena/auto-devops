@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: linkerd-identity-trust-roots
+  namespace: {{ .Release.Namespace }}
+  labels:
+    linkerd.io/control-plane-component: identity
+    linkerd.io/control-plane-ns: {{ .Release.Namespace }}
+    {{- with .Values.commonLabels }}{{ toYaml . | trim | nindent 4 }}{{- end }}
+  annotations:
+    {{ include "partials.annotations.created-by" . }}
+    # This annotation tells cert-manager's CA injector to populate ca-bundle.crt
+    # with the CA certificate from the specified Certificate resource
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/linkerd-identity-issuer
+data:
+  # This will be automatically populated by cert-manager's CA injector
+  ca-bundle.crt: "" 
