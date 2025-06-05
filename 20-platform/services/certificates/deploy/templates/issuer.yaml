@@ -1,7 +1,6 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: {{ .Values.issuer.name }}
-  # namespace: linkerd
+  name: linkerd-self-signed-issuer
 spec:
   selfSigned: {}
