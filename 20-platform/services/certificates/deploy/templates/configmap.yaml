@@ -27,12 +27,16 @@ spec:
       restartPolicy: Never
       containers:
       - name: ca-injector
-        image: bitnami/kubectl:latest
+        image: alpine/k8s:1.28.13
         command:
-        - /bin/bash
+        - /bin/sh
         - -c
         - |
           set -e
+          
+          # Install jq for JSON processing
+          apk add --no-cache jq
+          
           echo "Waiting for linkerd-identity-issuer secret to be ready..."
           kubectl wait --for=condition=Ready certificate linkerd-identity-issuer -n linkerd --timeout=300s
           
