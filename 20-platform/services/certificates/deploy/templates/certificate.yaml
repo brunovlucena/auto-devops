@@ -8,17 +8,9 @@ spec:
   duration: 8760h # 1 year
   renewBefore: 360h # 15 days
   issuerRef:
-    name: linkerd-self-signed-issuer # Reference the Issuer/ClusterIssuer you created
+    name: linkerd-self-signed-issuer
     kind: Issuer
-  commonName: identity.linkerd.cluster.local # This is crucial for Linkerd
-  isCA: true # This certificate will be used to sign other certificates
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  usages:
-    - digital signature
-    - key encipherment
-    - cert sign
+  commonName: linkerd-identity-issuer
 
 apiVersion: cert-manager.io/v1
 kind: Certificate
