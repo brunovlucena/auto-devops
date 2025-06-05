@@ -1,9 +1,10 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: linkerd-identity-issuer-tls
+  name: linkerd-identity-issuer
+  namespace: linkerd
 spec:
-  secretName: linkerd-identity-issuer-tls # This is the secret that will be created
+  secretName: linkerd-identity-issuer # This is the secret that will be created
   duration: 8760h # 1 year
   renewBefore: 360h # 15 days
   issuerRef:
@@ -23,6 +24,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: linkerd-proxy-injector
+  namespace: linkerd
 spec:
   secretName: linkerd-proxy-injector
   duration: 8760h
@@ -36,6 +38,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: linkerd-sp-validator
+  namespace: linkerd
 spec:
   secretName: linkerd-sp-validator
   duration: 8760h
@@ -49,6 +52,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: linkerd-policy-validator
+  namespace: linkerd
 spec:
   secretName: linkerd-policy-validator
   duration: 8760h
@@ -62,6 +66,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: linkerd-jaeger-webhook
+  namespace: linkerd
 spec:
   secretName: linkerd-jaeger-webhook
   duration: 8760h
