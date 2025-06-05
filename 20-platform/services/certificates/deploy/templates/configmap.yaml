@@ -45,14 +45,9 @@ spec:
           CA_CERT=$(echo "$CA_CERT_B64" | base64 -d)
           
           echo "Updating ConfigMap with CA certificate..."
-          # Create a temporary patch file to handle multi-line certificate properly
-          cat > /tmp/patch.json <<EOF
-{
-  "data": {
-    "ca-bundle.crt": $(echo "$CA_CERT" | jq -Rs .)
-  }
-}
-EOF
+          # Create JSON patch with properly escaped certificate
+          ESCAPED_CERT=$(echo "$CA_CERT" | jq -Rs .)
+          printf '{"data":{"ca-bundle.crt":%s}}' "$ESCAPED_CERT" > /tmp/patch.json
           
           kubectl patch configmap linkerd-identity-trust-roots -n linkerd --patch-file /tmp/patch.json
           
