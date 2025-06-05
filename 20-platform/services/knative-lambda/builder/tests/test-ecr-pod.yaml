@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-knative-lambda-builder-sa
+  namespace: knative-lambda
+spec:
+  serviceAccountName: knative-lambda-builder
+  restartPolicy: Never
+  containers:
+  - name: test-container
+    image: 339954290315.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas/knative-lambda-builder:latest
+    command: ["sh", "-c", "echo 'Image pulled successfully' && sleep 30"]
+  # imagePullSecrets:
+  # - name: ecr-secret
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-controller-sa
+  namespace: knative-serving
+spec:
+  serviceAccountName: controller
+  restartPolicy: Never
+  containers:
+  - name: test-container
+    image: 339954290315.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas/knative-lambda-builder:latest
+    command: ["sh", "-c", "echo 'Image pulled successfully' && sleep 30"]
+  # imagePullSecrets:
+  # - name: ecr-secret
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-knative-operator-sa
+  namespace: knative-operator
+spec:
+  serviceAccountName: knative-operator
+  restartPolicy: Never
+  containers:
+  - name: test-container
+    image: 339954290315.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas/knative-lambda-builder:latest
+    command: ["sh", "-c", "echo 'Image pulled successfully' && sleep 30"]
+  # imagePullSecrets:
+  # - name: ecr-secret

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: knative-lambda-config
+  namespace: {{ .Release.Namespace }}
+data:
+  AWS_REGION: "us-west-2"
+  AWS_ECR_REGISTRY: "605322476540.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas" 

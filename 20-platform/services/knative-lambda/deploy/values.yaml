@@ -1,0 +1,5 @@
+roleName: "knative-lambda-builder"
+
+# ECR repository settings
+ecr:
+  repositoryPrefix: "knative-lambda" 

@@ -2,9 +2,10 @@
 
 - **Test Argocd ingress**
 - **Test Grafana ingress**
+- **Test Grafana-MCP ingress**
 
 - Fix MongoDB deploy
-- Grafana MCP Server
+- Fix Redis deploy
 - Llama 4 on K8s
 - Jamie
 

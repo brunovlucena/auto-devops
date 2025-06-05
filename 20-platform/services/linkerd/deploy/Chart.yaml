@@ -1,0 +1,17 @@
+apiVersion: v2
+name: linkerd
+description: A Helm chart for deploying the linkerd service
+
+type: application
+
+version: 0.1.0
+
+appVersion: "edge-25.6.1"
+
+dependencies:
+  - name: linkerd-control-plane
+    version: 2025.6.1
+    repository: https://helm.linkerd.io/edge
+  - name: linkerd-viz
+    version: 2025.6.1
+    repository: https://helm.linkerd.io/edge

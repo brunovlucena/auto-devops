@@ -1,0 +1,581 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	cloudevents "github.com/cloudevents/sdk-go/v2"
+)
+
+// TestEndToEndBuildFlow tests the complete build flow from CloudEvent to resource creation
+func TestEndToEndBuildFlow(t *testing.T) {
+	// Skip integration tests if not in integration test mode
+	if os.Getenv("INTEGRATION_TESTS") != "true" {
+		t.Skip("Skipping integration tests - set INTEGRATION_TESTS=true to run")
+	}
+
+	t.Run("complete build flow", func(t *testing.T) {
+		// Setup test environment
+		tempDir, err := os.MkdirTemp("", "integration-test")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Change to test directory
+		oldDir, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("Failed to get current dir: %v", err)
+		}
+		defer os.Chdir(oldDir)
+
+		if err := os.Chdir(tempDir); err != nil {
+			t.Fatalf("Failed to change dir: %v", err)
+		}
+
+		// Create templates directory with test templates
+		err = setupTestTemplates(tempDir)
+		if err != nil {
+			t.Fatalf("Failed to setup test templates: %v", err)
+		}
+
+		// Test CloudEvent handling
+		buildEvent := BuildEvent{
+			ThirdPartyId: "integration-test-party",
+			ParserId:     "integration-test-parser",
+			ID:           "integration-test-id",
+		}
+
+		// Create and handle build start event
+		event := cloudevents.NewEvent()
+		event.SetType(EventTypeBuildStart)
+		event.SetSource("integration-test")
+		event.SetID("test-event-id")
+		event.SetData(cloudevents.ApplicationJSON, buildEvent)
+
+		ctx := context.Background()
+		err = handleCloudEvent(ctx, event)
+		if err != nil {
+			t.Errorf("handleCloudEvent() failed: %v", err)
+		}
+
+		// Test resource update event (job completion)
+		resourceEvent := ResourceEventData{
+			Kind: "Job",
+			Name: "integration-test-job",
+			Status: map[string]interface{}{
+				"conditions": []interface{}{
+					map[string]interface{}{
+						"type":   "Complete",
+						"status": "True",
+					},
+				},
+			},
+			BuildEvent: buildEvent,
+		}
+
+		updateEvent := cloudevents.NewEvent()
+		updateEvent.SetType(EventTypeResourceUpdate)
+		updateEvent.SetSource("integration-test")
+		updateEvent.SetID("test-update-event-id")
+		updateEvent.SetData(cloudevents.ApplicationJSON, resourceEvent)
+
+		err = handleCloudEvent(ctx, updateEvent)
+		if err != nil {
+			t.Errorf("handleCloudEvent() for resource update failed: %v", err)
+		}
+
+		// Verify that the global buildEvent was set correctly
+		if buildEvent.ThirdPartyId != "integration-test-party" {
+			t.Errorf("Build event not set correctly: %+v", buildEvent)
+		}
+	})
+}
+
+// TestTemplateProcessingIntegration tests the complete template processing workflow
+func TestTemplateProcessingIntegration(t *testing.T) {
+	t.Run("complete template processing workflow", func(t *testing.T) {
+		tempDir, err := os.MkdirTemp("", "template-integration")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Setup templates
+		err = setupTestTemplates(tempDir)
+		if err != nil {
+			t.Fatalf("Failed to setup templates: %v", err)
+		}
+
+		// Change to test directory
+		oldDir, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("Failed to get current dir: %v", err)
+		}
+		defer os.Chdir(oldDir)
+
+		if err := os.Chdir(tempDir); err != nil {
+			t.Fatalf("Failed to change dir: %v", err)
+		}
+
+		// Create build directory
+		buildDir := filepath.Join(tempDir, "build")
+		if err := os.MkdirAll(buildDir, 0755); err != nil {
+			t.Fatalf("Failed to create build dir: %v", err)
+		}
+
+		// Test build event
+		buildEvent := BuildEvent{
+			ThirdPartyId: "integration-party",
+			ParserId:     "integration-parser",
+			ID:           "integration-id",
+		}
+
+		// Process templates
+		err = processBuildContextTemplates(buildDir, buildEvent)
+		if err != nil {
+			t.Errorf("processBuildContextTemplates() failed: %v", err)
+			return
+		}
+
+		// Verify generated files
+		expectedFiles := []string{
+			"Dockerfile",
+			"package.json",
+			"index.js",
+			"func.yaml",
+		}
+
+		for _, filename := range expectedFiles {
+			filePath := filepath.Join(buildDir, filename)
+			if _, err := os.Stat(filePath); os.IsNotExist(err) {
+				t.Errorf("Expected file was not created: %s", filename)
+				continue
+			}
+
+			// Verify content contains expected replacements
+			content, err := os.ReadFile(filePath)
+			if err != nil {
+				t.Errorf("Failed to read file %s: %v", filename, err)
+				continue
+			}
+
+			contentStr := string(content)
+			if strings.Contains(contentStr, "{{.") {
+				t.Errorf("File %s still contains unreplaced templates: %s", filename, contentStr)
+			}
+
+			// Verify specific content based on file type
+			switch filename {
+			case "package.json":
+				if !strings.Contains(contentStr, "integration-parser") {
+					t.Errorf("package.json should contain parser name")
+				}
+			case "index.js":
+				if !strings.Contains(contentStr, "integration-parser") {
+					t.Errorf("index.js should contain parser ID")
+				}
+			}
+		}
+
+		// Test copying templates directory
+		targetDir := filepath.Join(tempDir, "copy-test")
+		if err := os.MkdirAll(targetDir, 0755); err != nil {
+			t.Fatalf("Failed to create target dir: %v", err)
+		}
+
+		err = copyTemplatesDir(targetDir)
+		if err != nil {
+			t.Errorf("copyTemplatesDir() failed: %v", err)
+		}
+
+		// Verify templates were copied
+		copiedTemplatesDir := filepath.Join(targetDir, "templates")
+		if _, err := os.Stat(copiedTemplatesDir); os.IsNotExist(err) {
+			t.Error("Templates directory was not copied")
+		}
+	})
+}
+
+// TestErrorHandlingIntegration tests error handling in integration scenarios
+func TestErrorHandlingIntegration(t *testing.T) {
+	t.Run("malformed cloud events", func(t *testing.T) {
+		// Test with invalid event data
+		event := cloudevents.NewEvent()
+		event.SetType(EventTypeBuildStart)
+		event.SetSource("error-test")
+		event.SetID("error-event-id")
+		event.SetData(cloudevents.ApplicationJSON, "invalid-json-data")
+
+		ctx := context.Background()
+		err := handleCloudEvent(ctx, event)
+
+		// Should handle error gracefully
+		if err == nil {
+			t.Error("Expected error for malformed event data")
+		}
+	})
+
+	t.Run("missing templates", func(t *testing.T) {
+		tempDir, err := os.MkdirTemp("", "error-test")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		// Change to directory without templates
+		oldDir, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("Failed to get current dir: %v", err)
+		}
+		defer os.Chdir(oldDir)
+
+		if err := os.Chdir(tempDir); err != nil {
+			t.Fatalf("Failed to change dir: %v", err)
+		}
+
+		buildEvent := MockBuildEvent()
+		err = processBuildContextTemplates(tempDir, buildEvent)
+
+		// Should fail gracefully when templates directory is missing
+		if err == nil {
+			t.Error("Expected error when templates directory is missing")
+		}
+	})
+}
+
+// TestConcurrentEventHandling tests handling multiple events concurrently
+func TestConcurrentEventHandling(t *testing.T) {
+	t.Run("concurrent build events", func(t *testing.T) {
+		numEvents := 5
+		events := make([]cloudevents.Event, numEvents)
+
+		// Create multiple build events
+		for i := 0; i < numEvents; i++ {
+			buildEvent := BuildEvent{
+				ThirdPartyId: fmt.Sprintf("party-%d", i),
+				ParserId:     fmt.Sprintf("parser-%d", i),
+				ID:           fmt.Sprintf("id-%d", i),
+			}
+
+			event := cloudevents.NewEvent()
+			event.SetType(EventTypeBuildStart)
+			event.SetSource("concurrent-test")
+			event.SetID(fmt.Sprintf("event-%d", i))
+			event.SetData(cloudevents.ApplicationJSON, buildEvent)
+
+			events[i] = event
+		}
+
+		// Handle events concurrently
+		ctx := context.Background()
+		errChan := make(chan error, numEvents)
+
+		for i := 0; i < numEvents; i++ {
+			go func(event cloudevents.Event) {
+				err := handleCloudEvent(ctx, event)
+				errChan <- err
+			}(events[i])
+		}
+
+		// Collect results
+		var errors []error
+		for i := 0; i < numEvents; i++ {
+			select {
+			case err := <-errChan:
+				if err != nil {
+					errors = append(errors, err)
+				}
+			case <-time.After(10 * time.Second):
+				t.Error("Timeout waiting for event handling to complete")
+			}
+		}
+
+		if len(errors) > 0 {
+			t.Errorf("Errors during concurrent event handling: %v", errors)
+		}
+	})
+}
+
+// TestEnvironmentConfiguration tests different environment configurations
+func TestEnvironmentConfiguration(t *testing.T) {
+	// Save original environment variables
+	originalVars := map[string]string{
+		EnvJobTemplatePath:     os.Getenv(EnvJobTemplatePath),
+		EnvServiceTemplatePath: os.Getenv(EnvServiceTemplatePath),
+		EnvTriggerTemplatePath: os.Getenv(EnvTriggerTemplatePath),
+		EnvEcrBaseRegistry:     os.Getenv(EnvEcrBaseRegistry),
+		EnvS3SourceBucket:      os.Getenv(EnvS3SourceBucket),
+	}
+
+	// Restore environment after test
+	defer func() {
+		for key, value := range originalVars {
+			if value != "" {
+				os.Setenv(key, value)
+			} else {
+				os.Unsetenv(key)
+			}
+		}
+	}()
+
+	t.Run("custom template paths", func(t *testing.T) {
+		tempDir, err := os.MkdirTemp("", "env-config-test")
+		if err != nil {
+			t.Fatalf("Failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tempDir)
+
+		customJobPath := filepath.Join(tempDir, "custom-job.yaml.tpl")
+		customServicePath := filepath.Join(tempDir, "custom-service.yaml.tpl")
+		customTriggerPath := filepath.Join(tempDir, "custom-trigger.yaml.tpl")
+
+		// Create custom template files
+		jobTemplate := `apiVersion: batch/v1
+kind: Job
+metadata:
+  name: custom-{{.Name}}
+spec:
+  template:
+    spec:
+      containers:
+      - name: custom-container
+        image: custom-image
+      restartPolicy: Never`
+
+		if err := os.WriteFile(customJobPath, []byte(jobTemplate), 0644); err != nil {
+			t.Fatalf("Failed to write custom job template: %v", err)
+		}
+
+		// Set custom environment variables
+		os.Setenv(EnvJobTemplatePath, customJobPath)
+		os.Setenv(EnvServiceTemplatePath, customServicePath)
+		os.Setenv(EnvTriggerTemplatePath, customTriggerPath)
+
+		// Re-initialize template paths (simulate init function)
+		JobTemplatePath = os.Getenv(EnvJobTemplatePath)
+		ServiceTemplatePath = os.Getenv(EnvServiceTemplatePath)
+		TriggerTemplatePath = os.Getenv(EnvTriggerTemplatePath)
+
+		// Verify custom paths are used
+		if JobTemplatePath != customJobPath {
+			t.Errorf("JobTemplatePath = %v, want %v", JobTemplatePath, customJobPath)
+		}
+
+		// Test parsing with custom template
+		data := JobTemplateData{Name: "test-custom"}
+		var job map[string]interface{}
+		err = parseTemplate(JobTemplatePath, data, &job)
+		if err != nil {
+			t.Errorf("parseTemplate() with custom path failed: %v", err)
+		}
+
+		// Verify custom content
+		if metadata, ok := job["metadata"].(map[string]interface{}); ok {
+			if name, ok := metadata["name"].(string); ok && name != "custom-test-custom" {
+				t.Errorf("Custom template not applied correctly: name = %v", name)
+			}
+		}
+	})
+
+	t.Run("aws configuration", func(t *testing.T) {
+		// Test with custom ECR registry
+		customRegistry := "123456789012.dkr.ecr.eu-west-1.amazonaws.com"
+		customBucket := "custom-build-bucket"
+
+		os.Setenv(EnvEcrBaseRegistry, customRegistry)
+		os.Setenv(EnvS3SourceBucket, customBucket)
+
+		// Verify environment variables are accessible
+		if os.Getenv(EnvEcrBaseRegistry) != customRegistry {
+			t.Errorf("ECR registry env var not set correctly")
+		}
+		if os.Getenv(EnvS3SourceBucket) != customBucket {
+			t.Errorf("S3 bucket env var not set correctly")
+		}
+	})
+}
+
+// setupTestTemplates creates a complete set of test templates
+func setupTestTemplates(baseDir string) error {
+	templatesDir := filepath.Join(baseDir, "templates")
+	if err := os.MkdirAll(templatesDir, 0755); err != nil {
+		return fmt.Errorf("failed to create templates directory: %w", err)
+	}
+
+	templates := map[string]string{
+		"job.yaml.tpl": `apiVersion: batch/v1
+kind: Job
+metadata:
+  name: build-{{.ThirdPartyId}}-{{.ParserId}}
+  namespace: knative-lambda
+spec:
+  template:
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+        - "--context={{.Context}}"
+        - "--dockerfile={{.Dockerfile}}"
+        - "--destination={{.ImageTag}}"
+      restartPolicy: Never`,
+
+		"service.yaml.tpl": `apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: parser-{{.ThirdPartyId}}-{{.ParserId}}
+  namespace: knative-lambda
+spec:
+  template:
+    spec:
+      containers:
+      - image: {{.Image}}
+        env:
+        - name: PARSER_ID
+          value: "{{.ParserId}}"`,
+
+		"Dockerfile.tpl": `FROM node:18-alpine
+WORKDIR /app
+COPY . .
+RUN npm install
+EXPOSE 8080
+CMD ["node", "index.js"]`,
+
+		"package.json.tpl": `{
+  "name": "parser-{{.ParserId}}",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@notifi-network/notifi-core": "^1.0.0"
+  }
+}`,
+
+		"index.js.tpl": `console.log('Parser ID: {{.ParserId}}');
+exports.handler = async (event) => {
+  return { statusCode: 200, body: 'Parser {{.ParserId}}' };
+};`,
+
+		"func.yaml.tpl": `apiVersion: v1
+kind: Function
+metadata:
+  name: {{.ParserId}}
+spec:
+  handler: index.handler`,
+
+		"trigger.yaml.tpl": `apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: {{.ParserId}}-trigger
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: {{.ParserId}}.event`,
+	}
+
+	for filename, content := range templates {
+		filePath := filepath.Join(templatesDir, filename)
+		if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+			return fmt.Errorf("failed to write template %s: %w", filename, err)
+		}
+	}
+
+	return nil
+}
+
+// TestResourceLifecycle tests the complete lifecycle of resources
+func TestResourceLifecycle(t *testing.T) {
+	t.Run("job lifecycle", func(t *testing.T) {
+		// Test job creation -> completion -> service creation flow
+		buildEvent := BuildEvent{
+			ThirdPartyId: "lifecycle-party",
+			ParserId:     "lifecycle-parser",
+			ID:           "lifecycle-id",
+		}
+
+		// Step 1: Build start event
+		startEvent := cloudevents.NewEvent()
+		startEvent.SetType(EventTypeBuildStart)
+		startEvent.SetSource("lifecycle-test")
+		startEvent.SetID("start-event")
+		startEvent.SetData(cloudevents.ApplicationJSON, buildEvent)
+
+		ctx := context.Background()
+		err := handleCloudEvent(ctx, startEvent)
+		if err != nil {
+			t.Errorf("Build start event failed: %v", err)
+		}
+
+		// Step 2: Job completion event
+		resourceEvent := ResourceEventData{
+			Kind: "Job",
+			Name: "lifecycle-job",
+			Status: map[string]interface{}{
+				"conditions": []interface{}{
+					map[string]interface{}{
+						"type":   "Complete",
+						"status": "True",
+					},
+				},
+			},
+			BuildEvent: buildEvent,
+		}
+
+		completionEvent := cloudevents.NewEvent()
+		completionEvent.SetType(EventTypeResourceUpdate)
+		completionEvent.SetSource("lifecycle-test")
+		completionEvent.SetID("completion-event")
+		completionEvent.SetData(cloudevents.ApplicationJSON, resourceEvent)
+
+		err = handleCloudEvent(ctx, completionEvent)
+		if err != nil {
+			t.Errorf("Job completion event failed: %v", err)
+		}
+
+		// The actual service creation would happen in the background goroutine
+		// In a real integration test, we would wait and verify the service was created
+	})
+}
+
+// BenchmarkIntegrationFlow benchmarks the complete integration flow
+func BenchmarkIntegrationFlow(b *testing.B) {
+	if os.Getenv("INTEGRATION_TESTS") != "true" {
+		b.Skip("Skipping integration benchmarks - set INTEGRATION_TESTS=true to run")
+	}
+
+	tempDir, err := os.MkdirTemp("", "benchmark-integration")
+	if err != nil {
+		b.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	err = setupTestTemplates(tempDir)
+	if err != nil {
+		b.Fatalf("Failed to setup templates: %v", err)
+	}
+
+	buildEvent := BuildEvent{
+		ThirdPartyId: "benchmark-party",
+		ParserId:     "benchmark-parser",
+		ID:           "benchmark-id",
+	}
+
+	event := cloudevents.NewEvent()
+	event.SetType(EventTypeBuildStart)
+	event.SetSource("benchmark")
+	event.SetID("bench-event")
+	event.SetData(cloudevents.ApplicationJSON, buildEvent)
+
+	ctx := context.Background()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		handleCloudEvent(ctx, event)
+	}
+}

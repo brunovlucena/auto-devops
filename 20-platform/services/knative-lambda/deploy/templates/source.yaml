@@ -1,0 +1,47 @@
+apiVersion: sources.knative.dev/v1alpha1
+kind: RabbitmqSource
+metadata:
+  name: knative-lambda-builder
+  namespace: rabbitmq
+spec:
+  rabbitmqClusterReference:
+    connectionSecret:
+      name: rabbitmq-notifi-secret
+  rabbitmqResourcesConfig:
+    parallelism: 10
+    exchangeName: "cloud-events"
+    queueName: "lambda-build-events"
+  delivery:
+    retry: 5
+    backoffPolicy: "linear"
+    backoffDelay: "PT1S"
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: builder-broker
+      namespace: knative-eventing
+---
+apiVersion: sources.knative.dev/v1alpha1
+kind: RabbitmqSource
+metadata:
+  name: knative-lambda-service
+  namespace: rabbitmq
+spec:
+  rabbitmqClusterReference:
+    connectionSecret:
+      name: rabbitmq-notifi-secret
+  rabbitmqResourcesConfig:
+    parallelism: 10
+    exchangeName: "cloud-events"
+    queueName: "lambda-service-events"
+  delivery:
+    retry: 5
+    backoffPolicy: "linear"
+    backoffDelay: "PT1S"
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: service-broker
+      namespace: knative-eventing

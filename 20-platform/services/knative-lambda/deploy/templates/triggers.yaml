@@ -1,0 +1,13 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: knative-lambda-builder
+  namespace: knative-eventing
+spec:
+  broker: builder-broker
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: knative-lambda-builder
+      namespace: knative-lambda

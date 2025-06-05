@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: knative-serving
+  labels:
+    knative-serving-injection: enabled
+---
+apiVersion: operator.knative.dev/v1beta1
+kind: KnativeServing
+metadata:
+  name: knative-serving
+  namespace: knative-serving
+spec:
+  ingress:
+    kourier:
+      enabled: true
+  config:
+    features:
+      "kubernetes.podspec-tolerations": "enabled"
+      "kubernetes.podspec-nodeselector": "enabled"
+    network:
+      ingress-class: "kourier.ingress.networking.knative.dev"
+  workloads:
+    - name: activator
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: autoscaler
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: autoscaler-hpa
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: cleanup-serving-serving
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: controller
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: webhook
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"

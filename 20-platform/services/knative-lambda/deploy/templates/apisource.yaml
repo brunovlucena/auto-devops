@@ -1,0 +1,72 @@
+apiVersion: sources.knative.dev/v1
+kind: ApiServerSource
+metadata:
+  name: job-watcher
+  namespace: knative-lambda
+spec:
+  resources:
+  - apiVersion: batch/v1
+    kind: Job
+  serviceAccountName: k8s-job-watcher-sa
+  mode: Resource # Watch specific resources
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: knative-lambda-builder
+      namespace: knative-lambda
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-job-watcher-sa
+  namespace: knative-lambda
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: job-watcher-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+# temporary role for testing
+- apiGroups:
+  - ""
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
+  - v1
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: job-watcher-binding
+subjects:
+- kind: ServiceAccount
+  name: k8s-job-watcher-sa
+  namespace: knative-lambda
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: job-watcher-role 

@@ -1,0 +1,110 @@
+---
+# This Service:
+# - Receives a CloudEvent network.notifi.lambda.build.start
+# - Creates a Kaniko Job to build the image
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: knative-lambda-builder
+  namespace: knative-lambda
+spec:
+  template:
+    metadata:
+      annotations:
+        networking.knative.dev/ingress.class: "kourier.ingress.networking.knative.dev"
+        # autoscaling.knative.dev/class: "kpa.autoscaling.knative.dev"
+        # autoscaling.knative.dev/scale-to-zero-pod-retention-period: "2m"
+        network.notifi.lambda.build.builder/force-redeployment: "unique-value-asdfasdf234524233"
+    spec:
+      serviceAccountName: knative-lambda-builder
+      containers:
+      - image: {{ .Values.accountId }}.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas/knative-lambda-builder:latest
+        imagePullPolicy: Always
+        env:
+          - name: ECR_REPO_PREFIX
+            value: "{{ .Values.accountId }}.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas"
+      # tolerations:
+      #   - key: knative-spot
+      #     operator: Equal
+      #     value: "true"
+      #     effect: NoSchedule
+      # nodeSelector:
+      #   knative-spot: "true"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: knative-lambda-builder
+  namespace: knative-lambda
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.accountId }}:role/{{ .Values.roleName }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: knative-lambda-builder
+rules:
+  - apiGroups:
+    - "eventing.knative.dev"
+    resources:
+    - brokers
+    - triggers
+    verbs:
+    - get
+    - list
+    - create
+    - watch
+    - delete
+  - apiGroups:
+    - "serving.knative.dev"
+    resources:
+    - services
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - delete
+  - apiGroups:
+    - batch
+    resources:
+    - jobs
+    verbs:
+    - get
+    - list
+    - create
+    - update
+  - apiGroups:
+    - ""
+    resources:
+    - pods
+    - namespaces
+    verbs:
+    - get
+    - list
+    - watch
+  # TODO: Remove this once we have a better way to handle RabbitMQSource
+  - apiGroups:
+    - "sources.knative.dev"
+    resources:
+    - rabbitmqsources
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: knative-lambda-builder
+subjects:
+  - kind: ServiceAccount
+    name: knative-lambda-builder
+    namespace: knative-lambda
+roleRef:
+  kind: ClusterRole
+  name: knative-lambda-builder
+  apiGroup: rbac.authorization.k8s.io

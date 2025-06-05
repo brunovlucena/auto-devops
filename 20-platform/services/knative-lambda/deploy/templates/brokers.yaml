@@ -1,0 +1,71 @@
+apiVersion: eventing.knative.dev/v1alpha1
+kind: RabbitmqBrokerConfig
+metadata:
+  name: builder-broker
+  namespace: knative-eventing
+spec:
+  rabbitmqClusterReference:
+    # Configure name if a RabbitMQ Cluster Operator is being used.
+    name: rabbitmq-cluster
+    namespace: rabbitmq
+  queueType: quorum
+  rabbitmqResourcesConfig:
+    exchangeName: "cloud-events"
+    queueName: "lambda-build-events"
+---
+apiVersion: eventing.knative.dev/v1
+kind: Broker
+metadata:
+  annotations:
+    eventing.knative.dev/broker.class: RabbitMQBroker
+  name: builder-broker
+  namespace: knative-eventing
+spec:
+  config:
+    apiVersion: eventing.knative.dev/v1alpha1
+    kind: RabbitmqBrokerConfig
+    name: builder-broker
+    namespace: knative-eventing
+  # nodeSelector:
+  #   knative: "true"
+  # tolerations:
+  #   - key: knative
+  #     operator: Equal
+  #     value: "true"
+  #     effect: NoSchedule
+---
+apiVersion: eventing.knative.dev/v1alpha1
+kind: RabbitmqBrokerConfig
+metadata:
+  name: service-broker
+  namespace: knative-eventing
+spec:
+  rabbitmqClusterReference:
+    # Configure name if a RabbitMQ Cluster Operator is being used.
+    name: rabbitmq-cluster
+    namespace: rabbitmq
+  queueType: quorum
+  rabbitmqResourcesConfig:
+    exchangeName: "cloud-events"
+    queueName: "lambda-service-events"
+---
+apiVersion: eventing.knative.dev/v1
+kind: Broker
+metadata:
+  annotations:
+    eventing.knative.dev/broker.class: RabbitMQBroker
+  name: service-broker
+  namespace: knative-eventing
+spec:
+  config:
+    apiVersion: eventing.knative.dev/v1alpha1
+    kind: RabbitmqBrokerConfig
+    name: service-broker
+    namespace: knative-eventing
+  # nodeSelector:
+  #   knative: "true"
+  # tolerations:
+  #   - key: knative
+  #     operator: Equal
+  #     value: "true"
+  #     effect: NoSchedule

@@ -1,0 +1,569 @@
+package main
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+)
+
+// TestParseTemplate tests the parseTemplate function
+func TestParseTemplate(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir, err := os.MkdirTemp("", "test-parse-template")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	t.Run("valid job template", func(t *testing.T) {
+		// Create a test template file
+		templateContent := `apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{.Name}}
+  namespace: knative-lambda
+spec:
+  template:
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+        - "--context={{.Context}}"
+        - "--dockerfile={{.Dockerfile}}"
+        - "--destination={{.ImageTag}}"
+      restartPolicy: Never`
+
+		templatePath := filepath.Join(tempDir, "job.yaml.tpl")
+		if err := os.WriteFile(templatePath, []byte(templateContent), 0644); err != nil {
+			t.Fatalf("Failed to write template file: %v", err)
+		}
+
+		// Test data
+		data := JobTemplateData{
+			Name:       "test-job",
+			Dockerfile: "Dockerfile",
+			Context:    "s3://bucket/context.tar.gz",
+			ImageTag:   "123456789012.dkr.ecr.us-east-1.amazonaws.com/test:latest",
+		}
+
+		// Parse template
+		var job batchv1.Job
+		err := parseTemplate(templatePath, data, &job)
+		if err != nil {
+			t.Errorf("parseTemplate() error = %v", err)
+			return
+		}
+
+		// Verify parsed values
+		if job.ObjectMeta.Name != "test-job" {
+			t.Errorf("Job name = %v, want %v", job.ObjectMeta.Name, "test-job")
+		}
+		if job.ObjectMeta.Namespace != "knative-lambda" {
+			t.Errorf("Job namespace = %v, want %v", job.ObjectMeta.Namespace, "knative-lambda")
+		}
+		if len(job.Spec.Template.Spec.Containers) == 0 {
+			t.Error("Job should have at least one container")
+			return
+		}
+
+		container := job.Spec.Template.Spec.Containers[0]
+		if container.Name != "kaniko" {
+			t.Errorf("Container name = %v, want %v", container.Name, "kaniko")
+		}
+		if container.Image != "gcr.io/kaniko-project/executor:latest" {
+			t.Errorf("Container image = %v, want %v", container.Image, "gcr.io/kaniko-project/executor:latest")
+		}
+
+		// Check args
+		expectedArgs := []string{
+			"--context=s3://bucket/context.tar.gz",
+			"--dockerfile=Dockerfile",
+			"--destination=123456789012.dkr.ecr.us-east-1.amazonaws.com/test:latest",
+		}
+		if len(container.Args) != len(expectedArgs) {
+			t.Errorf("Container args length = %v, want %v", len(container.Args), len(expectedArgs))
+		}
+		for i, arg := range expectedArgs {
+			if i >= len(container.Args) || container.Args[i] != arg {
+				t.Errorf("Container arg[%d] = %v, want %v", i, container.Args[i], arg)
+			}
+		}
+	})
+
+	t.Run("valid service template", func(t *testing.T) {
+		// Create a service template
+		templateContent := `apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: parser-{{.ThirdPartyId}}-{{.ParserId}}
+  namespace: knative-lambda
+spec:
+  template:
+    spec:
+      containers:
+      - image: {{.Image}}
+        env:
+        - name: PARSER_ID
+          value: "{{.ParserId}}"
+        - name: THIRD_PARTY_ID
+          value: "{{.ThirdPartyId}}"`
+
+		templatePath := filepath.Join(tempDir, "service.yaml.tpl")
+		if err := os.WriteFile(templatePath, []byte(templateContent), 0644); err != nil {
+			t.Fatalf("Failed to write service template file: %v", err)
+		}
+
+		// Test data
+		data := ServiceTemplateData{
+			ThirdPartyId: "test-party",
+			ParserId:     "test-parser",
+			Image:        "123456789012.dkr.ecr.us-east-1.amazonaws.com/test:latest",
+		}
+
+		// Parse template into a generic map for testing
+		var result map[string]interface{}
+		err := parseTemplate(templatePath, data, &result)
+		if err != nil {
+			t.Errorf("parseTemplate() error = %v", err)
+			return
+		}
+
+		// Verify parsed values
+		metadata, ok := result["metadata"].(map[string]interface{})
+		if !ok {
+			t.Error("metadata should be a map")
+			return
+		}
+
+		name, ok := metadata["name"].(string)
+		if !ok {
+			t.Error("metadata.name should be a string")
+			return
+		}
+		if name != "parser-test-party-test-parser" {
+			t.Errorf("Service name = %v, want %v", name, "parser-test-party-test-parser")
+		}
+	})
+
+	t.Run("template file not found", func(t *testing.T) {
+		nonExistentPath := filepath.Join(tempDir, "nonexistent.yaml.tpl")
+		data := JobTemplateData{}
+		var job batchv1.Job
+
+		err := parseTemplate(nonExistentPath, data, &job)
+		if err == nil {
+			t.Error("parseTemplate() should return error for non-existent file")
+		}
+		if !strings.Contains(err.Error(), "template file does not exist") {
+			t.Errorf("Expected 'template file does not exist' error, got: %v", err)
+		}
+	})
+
+	t.Run("invalid template syntax", func(t *testing.T) {
+		// Create a template with invalid syntax
+		templateContent := `apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{.Name
+  namespace: knative-lambda`
+
+		templatePath := filepath.Join(tempDir, "invalid.yaml.tpl")
+		if err := os.WriteFile(templatePath, []byte(templateContent), 0644); err != nil {
+			t.Fatalf("Failed to write invalid template file: %v", err)
+		}
+
+		data := JobTemplateData{Name: "test"}
+		var job batchv1.Job
+
+		err := parseTemplate(templatePath, data, &job)
+		if err == nil {
+			t.Error("parseTemplate() should return error for invalid template syntax")
+		}
+		if !strings.Contains(err.Error(), "failed to parse template") {
+			t.Errorf("Expected 'failed to parse template' error, got: %v", err)
+		}
+	})
+
+	t.Run("invalid yaml output", func(t *testing.T) {
+		// Create a template that produces invalid YAML
+		templateContent := `this is not: valid: yaml:
+  - with multiple colons: in: wrong: places:`
+
+		templatePath := filepath.Join(tempDir, "invalidyaml.yaml.tpl")
+		if err := os.WriteFile(templatePath, []byte(templateContent), 0644); err != nil {
+			t.Fatalf("Failed to write invalid yaml template file: %v", err)
+		}
+
+		data := JobTemplateData{}
+		var job batchv1.Job
+
+		err := parseTemplate(templatePath, data, &job)
+		if err == nil {
+			t.Error("parseTemplate() should return error for invalid YAML output")
+		}
+		if !strings.Contains(err.Error(), "failed to decode YAML") {
+			t.Errorf("Expected 'failed to decode YAML' error, got: %v", err)
+		}
+	})
+}
+
+// TestProcessBuildContextTemplates tests the processBuildContextTemplates function
+func TestProcessBuildContextTemplates(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir, err := os.MkdirTemp("", "test-process-templates")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Create templates directory
+	templatesDir := filepath.Join(tempDir, "templates")
+	if err := os.MkdirAll(templatesDir, 0755); err != nil {
+		t.Fatalf("Failed to create templates dir: %v", err)
+	}
+
+	// Create test template files
+	dockerfileTemplate := `FROM node:18-alpine
+WORKDIR /app
+COPY . .
+RUN npm install
+EXPOSE 8080
+CMD ["node", "index.js"]`
+
+	packageJsonTemplate := `{
+  "name": "parser-{{.ParserId}}",
+  "version": "1.0.0",
+  "description": "Lambda parser for {{.ParserId}}",
+  "main": "index.js",
+  "dependencies": {
+    "@notifi-network/notifi-core": "^1.0.0"
+  }
+}`
+
+	indexJsTemplate := `const { parseTransaction } = require('./parser');
+
+exports.handler = async (event) => {
+  console.log('Parser ID: {{.ParserId}}');
+  return parseTransaction(event);
+};`
+
+	funcYamlTemplate := `parser:
+  id: {{.ParserId}}
+  version: "1.0.0"
+`
+
+	// Write template files
+	if err := os.WriteFile(filepath.Join(templatesDir, "Dockerfile.tpl"), []byte(dockerfileTemplate), 0644); err != nil {
+		t.Fatalf("Failed to write Dockerfile template: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(templatesDir, "package.json.tpl"), []byte(packageJsonTemplate), 0644); err != nil {
+		t.Fatalf("Failed to write package.json template: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(templatesDir, "index.js.tpl"), []byte(indexJsTemplate), 0644); err != nil {
+		t.Fatalf("Failed to write index.js template: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(templatesDir, "func.yaml.tpl"), []byte(funcYamlTemplate), 0644); err != nil {
+		t.Fatalf("Failed to write func.yaml template: %v", err)
+	}
+
+	// Change to temp directory
+	oldDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current dir: %v", err)
+	}
+	defer os.Chdir(oldDir)
+
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatalf("Failed to change dir: %v", err)
+	}
+
+	// Create target directory
+	targetDir := filepath.Join(tempDir, "build")
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatalf("Failed to create target dir: %v", err)
+	}
+
+	// Test data
+	buildEvent := MockBuildEvent()
+
+	t.Run("successful template processing", func(t *testing.T) {
+		err := processBuildContextTemplates(targetDir, buildEvent)
+		if err != nil {
+			t.Errorf("processBuildContextTemplates() error = %v", err)
+			return
+		}
+
+		// Verify files were created
+		expectedFiles := []string{
+			"Dockerfile",
+			"package.json",
+			"index.js",
+			"func.yaml",
+		}
+
+		for _, filename := range expectedFiles {
+			filePath := filepath.Join(targetDir, filename)
+			if _, err := os.Stat(filePath); os.IsNotExist(err) {
+				t.Errorf("Expected file was not created: %s", filename)
+				continue
+			}
+
+			// Read and verify content
+			content, err := os.ReadFile(filePath)
+			if err != nil {
+				t.Errorf("Failed to read file %s: %v", filename, err)
+				continue
+			}
+
+			contentStr := string(content)
+			switch filename {
+			case "package.json":
+				if !strings.Contains(contentStr, `"name": "parser-test-parser"`) {
+					t.Errorf("package.json should contain parser name, got: %s", contentStr)
+				}
+			case "index.js":
+				if !strings.Contains(contentStr, "Parser ID: test-parser") {
+					t.Errorf("index.js should contain parser ID, got: %s", contentStr)
+				}
+			case "Dockerfile":
+				if !strings.Contains(contentStr, "FROM node:18-alpine") {
+					t.Errorf("Dockerfile should contain base image, got: %s", contentStr)
+				}
+			case "func.yaml":
+				if !strings.Contains(contentStr, "parser:") {
+					t.Errorf("func.yaml should contain parser section, got: %s", contentStr)
+				}
+			}
+		}
+	})
+
+	t.Run("missing templates directory", func(t *testing.T) {
+		// Remove templates directory
+		os.RemoveAll(templatesDir)
+
+		targetDir2 := filepath.Join(tempDir, "build2")
+		if err := os.MkdirAll(targetDir2, 0755); err != nil {
+			t.Fatalf("Failed to create target dir: %v", err)
+		}
+
+		err := processBuildContextTemplates(targetDir2, buildEvent)
+		if err == nil {
+			t.Error("processBuildContextTemplates() should return error when templates directory is missing")
+		}
+	})
+}
+
+// TestTemplateDataFunctions tests the data functions used in BuildContextTemplate
+func TestTemplateDataFunctions(t *testing.T) {
+	buildEvent := MockBuildEvent()
+
+	t.Run("WrapperTemplateData function", func(t *testing.T) {
+		dataFunc := func(buildEvent BuildEvent) interface{} {
+			return WrapperTemplateData{ParserId: buildEvent.ParserId}
+		}
+
+		data := dataFunc(buildEvent)
+		wrapperData, ok := data.(WrapperTemplateData)
+		if !ok {
+			t.Errorf("Expected WrapperTemplateData, got %T", data)
+			return
+		}
+
+		if wrapperData.ParserId != buildEvent.ParserId {
+			t.Errorf("ParserId = %v, want %v", wrapperData.ParserId, buildEvent.ParserId)
+		}
+	})
+
+	t.Run("package.json data function", func(t *testing.T) {
+		dataFunc := func(buildEvent BuildEvent) interface{} {
+			return map[string]string{
+				"ParserId":     buildEvent.ParserId,
+				"ThirdPartyId": buildEvent.ThirdPartyId,
+			}
+		}
+
+		data := dataFunc(buildEvent)
+		mapData, ok := data.(map[string]string)
+		if !ok {
+			t.Errorf("Expected map[string]string, got %T", data)
+			return
+		}
+
+		if mapData["ParserId"] != buildEvent.ParserId {
+			t.Errorf("ParserId = %v, want %v", mapData["ParserId"], buildEvent.ParserId)
+		}
+		if mapData["ThirdPartyId"] != buildEvent.ThirdPartyId {
+			t.Errorf("ThirdPartyId = %v, want %v", mapData["ThirdPartyId"], buildEvent.ThirdPartyId)
+		}
+	})
+}
+
+// TestTemplateValidation tests template validation
+func TestTemplateValidation(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "test-template-validation")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	t.Run("valid Kubernetes job template", func(t *testing.T) {
+		templateContent := `apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{.Name}}
+  namespace: knative-lambda
+  labels:
+    app: kaniko-builder
+    thirdPartyId: {{.ThirdPartyId}}
+    parserId: {{.ParserId}}
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: kaniko-builder
+    spec:
+      serviceAccountName: knative-lambda-builder
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+        - "--context={{.Context}}"
+        - "--dockerfile={{.Dockerfile}}"
+        - "--destination={{.ImageTag}}"
+        - "--cache=true"
+        - "--skip-tls-verify"
+        env:
+        - name: AWS_DEFAULT_REGION
+          value: {{.Region}}
+        volumeMounts:
+        - name: aws-secret
+          mountPath: /kaniko/.aws/
+          readOnly: true
+      volumes:
+      - name: aws-secret
+        secret:
+          secretName: aws-credentials
+      restartPolicy: Never`
+
+		templatePath := filepath.Join(tempDir, "job.yaml.tpl")
+		if err := os.WriteFile(templatePath, []byte(templateContent), 0644); err != nil {
+			t.Fatalf("Failed to write template file: %v", err)
+		}
+
+		data := JobTemplateData{
+			Name:         "test-job-12345",
+			Dockerfile:   "Dockerfile",
+			Context:      "s3://test-bucket/context.tar.gz",
+			ImageTag:     "123456789012.dkr.ecr.us-east-1.amazonaws.com/test:latest",
+			ThirdPartyId: "test-party",
+			ParserId:     "test-parser",
+			Region:       "us-east-1",
+			AccountId:    "123456789012",
+		}
+
+		var job batchv1.Job
+		err := parseTemplate(templatePath, data, &job)
+		if err != nil {
+			t.Errorf("parseTemplate() error = %v", err)
+			return
+		}
+
+		// Validate essential fields
+		if job.Kind != "Job" {
+			t.Errorf("Job kind = %v, want %v", job.Kind, "Job")
+		}
+		if job.APIVersion != "batch/v1" {
+			t.Errorf("Job apiVersion = %v, want %v", job.APIVersion, "batch/v1")
+		}
+		if job.ObjectMeta.Name != "test-job-12345" {
+			t.Errorf("Job name = %v, want %v", job.ObjectMeta.Name, "test-job-12345")
+		}
+		if job.Spec.BackoffLimit == nil || *job.Spec.BackoffLimit != 3 {
+			t.Errorf("Job backoffLimit = %v, want %v", job.Spec.BackoffLimit, 3)
+		}
+		if job.Spec.Template.Spec.ServiceAccountName != "knative-lambda-builder" {
+			t.Errorf("ServiceAccount = %v, want %v", job.Spec.Template.Spec.ServiceAccountName, "knative-lambda-builder")
+		}
+		if job.Spec.Template.Spec.RestartPolicy != corev1.RestartPolicyNever {
+			t.Errorf("RestartPolicy = %v, want %v", job.Spec.Template.Spec.RestartPolicy, corev1.RestartPolicyNever)
+		}
+
+		// Validate container
+		if len(job.Spec.Template.Spec.Containers) != 1 {
+			t.Errorf("Expected 1 container, got %d", len(job.Spec.Template.Spec.Containers))
+			return
+		}
+
+		container := job.Spec.Template.Spec.Containers[0]
+		if container.Name != "kaniko" {
+			t.Errorf("Container name = %v, want %v", container.Name, "kaniko")
+		}
+
+		// Validate environment variables
+		foundRegion := false
+		for _, env := range container.Env {
+			if env.Name == "AWS_DEFAULT_REGION" && env.Value == "us-east-1" {
+				foundRegion = true
+				break
+			}
+		}
+		if !foundRegion {
+			t.Error("AWS_DEFAULT_REGION environment variable not found or incorrect")
+		}
+
+		// Validate volumes
+		if len(job.Spec.Template.Spec.Volumes) != 1 {
+			t.Errorf("Expected 1 volume, got %d", len(job.Spec.Template.Spec.Volumes))
+		}
+	})
+}
+
+// BenchmarkParseTemplate benchmarks the parseTemplate function
+func BenchmarkParseTemplate(b *testing.B) {
+	tempDir, err := os.MkdirTemp("", "benchmark-parse-template")
+	if err != nil {
+		b.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	templateContent := `apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{.Name}}
+  namespace: knative-lambda
+spec:
+  template:
+    spec:
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+        - "--context={{.Context}}"
+        - "--dockerfile={{.Dockerfile}}"
+        - "--destination={{.ImageTag}}"
+      restartPolicy: Never`
+
+	templatePath := filepath.Join(tempDir, "job.yaml.tpl")
+	if err := os.WriteFile(templatePath, []byte(templateContent), 0644); err != nil {
+		b.Fatalf("Failed to write template file: %v", err)
+	}
+
+	data := JobTemplateData{
+		Name:       "test-job",
+		Dockerfile: "Dockerfile",
+		Context:    "s3://bucket/context.tar.gz",
+		ImageTag:   "123456789012.dkr.ecr.us-east-1.amazonaws.com/test:latest",
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var job batchv1.Job
+		parseTemplate(templatePath, data, &job)
+	}
+}
