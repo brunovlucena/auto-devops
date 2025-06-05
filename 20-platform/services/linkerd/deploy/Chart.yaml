@@ -15,3 +15,6 @@ dependencies:
   - name: linkerd-viz
     version: 2025.6.1
     repository: https://helm.linkerd.io/edge
+  - name: linkerd-jaeger
+    version: 2025.6.1
+    repository: https://helm.linkerd.io/edge

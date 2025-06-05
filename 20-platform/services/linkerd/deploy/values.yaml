@@ -1,0 +1,195 @@
+linkerd-control-plane:
+
+  # -- Kubernetes DNS Domain name to use
+  clusterDomain: cluster.local
+
+  # -- The cluster networks for which service discovery is performed. This should
+  # include the pod and service networks, but need not include the node network.
+  #
+  # By default, all IPv4 private networks and all accepted IPv6 ULAs are
+  # specified so that resolution works in typical Kubernetes environments.
+  clusterNetworks: "10.0.0.0/8,100.64.0.0/10,172.16.0.0/12,192.168.0.0/16,fd00::/8"
+  # -- Log level for the control plane components
+  controllerLogLevel: debug
+  # -- Log format for the control plane components
+  controllerLogFormat: json
+  # -- enables control plane tracing
+  controlPlaneTracing: true
+  # -- namespace to send control plane traces to
+  controlPlaneTracingNamespace: linkerd-jaeger
+  # -- control plane version. See Proxy section for proxy version
+  linkerdVersion: edge-25.3.2
+  # -- enables the use of pprof endpoints on control plane component's admin
+  # servers
+  enablePprof: false
+  disableIPv6: true
+
+  # policy controller configuration
+  policyController:
+    logLevel: debug
+
+    probeNetworks:
+      - 0.0.0.0/0
+      - "::/0"
+
+    livenessProbe:
+      timeoutSeconds: 1
+    readinessProbe:
+      timeoutSeconds: 1
+
+  # proxy configuration
+  proxy:
+    # -- Enable service profiles for non-Kubernetes services
+    enableExternalProfiles: false
+    # -- Maximum time allowed for the proxy to establish an outbound TCP
+    # connection
+    outboundConnectTimeout: 1000ms
+    # -- Maximum time allowed for the proxy to establish an inbound TCP
+    # connection
+    inboundConnectTimeout: 100ms
+    # -- Maximum time allowed before an unused outbound discovery result
+    # is evicted from the cache
+    outboundDiscoveryCacheUnusedTimeout: "5s"
+    # -- Maximum time allowed before an unused inbound discovery result
+    # is evicted from the cache
+    inboundDiscoveryCacheUnusedTimeout: "90s"
+    # -- When set to true, disables the protocol detection timeout on the
+    # outbound side of the proxy by setting it to a very high value
+    disableOutboundProtocolDetectTimeout: false
+    # -- When set to true, disables the protocol detection timeout on the inbound
+    # side of the proxy by setting it to a very high value
+    disableInboundProtocolDetectTimeout: false
+
+    logLevel: warn,linkerd=info,hickory=error
+    # -- Log format (`plain` or `json`) for the proxy
+    logFormat: json
+
+  # proxy-init configuration
+  proxyInit:
+    # -- Variant of iptables that will be used to configure routing. Currently,
+    # proxy-init can be run either in 'nft' or in 'legacy' mode. The mode will
+    # control which utility binary will be called. The host must support
+    # whichever mode will be used
+    iptablesMode: "nft"
+    # -- Default set of inbound ports to skip via iptables
+    # - Galera (4567,4568)
+    ignoreInboundPorts: "4567,4568"
+    # -- Default set of outbound ports to skip via iptables
+    # - Galera (4567,4568)
+    ignoreOutboundPorts: "4567,4568"
+    # -- Default set of ports to skip via iptables for control plane
+    # components so they can communicate with the Kubernetes API Server
+    kubeAPIServerPorts: "443,6443"
+    # -- Comma-separated list of subnets in valid CIDR format that should be skipped by the proxy
+    skipSubnets: ""
+    # -- Log level for the proxy-init
+    # @default -- info
+    logLevel: ""
+    # -- Log format (`plain` or `json`) for the proxy-init
+    # @default -- plain
+    logFormat: "json"
+    # kernel parameter. If used, runAsRoot needs to be true.
+    closeWaitTimeoutSecs: 0
+    # -- Privileged mode allows the container processes to inherit all security
+    # capabilities and bypass any security limitations enforced by the kubelet.
+    # When used with 'runAsRoot: true', the container will behave exactly as if
+    # it was running as root on the host. May escape cgroup limits and see other
+    # processes and devices on the host.
+    # @default -- false
+    privileged: false
+    # -- Allow overriding the runAsNonRoot behaviour (<https://github.com/linkerd/linkerd2/issues/7308>)
+    runAsRoot: false
+    # -- This value is used only if runAsRoot is false; otherwise runAsUser will be 0
+    runAsUser: 65534
+    # -- This value is used only if runAsRoot is false; otherwise runAsGroup will be 0
+    runAsGroup: 65534
+    xtMountPath:
+      mountPath: /run
+      name: linkerd-proxy-init-xtables-lock
+
+  # network validator configuration
+  # This runs on a host that uses iptables to reroute network traffic. The validator
+  # ensures that iptables is correctly routing requests before we start linkerd.
+  networkValidator:
+    # -- Log level for the network-validator
+    # @default -- debug
+    logLevel: debug
+    # -- Log format (`plain` or `json`) for network-validator
+    # @default -- plain
+    logFormat: json
+
+  # -- Allow proxies to perform transparent HTTP/2 upgrading
+  enableH2Upgrade: true
+
+  # -- Failure policy for the proxy injector
+  webhookFailurePolicy: Ignore
+
+  destinationController:
+    meshedHttp2ClientProtobuf:
+      keep_alive:
+        interval:
+          seconds: 10
+        timeout:
+          seconds: 3
+        while_idle: true
+    # -- Additional annotations to add to destination pods
+    podAnnotations: {}
+    livenessProbe:
+      timeoutSeconds: 1
+    readinessProbe:
+      timeoutSeconds: 1
+
+  identity:
+    # -- If the linkerd-identity-trust-roots ConfigMap has already been created
+    externalCA: true
+
+    # -- Use [Service Account token Volume projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection) for pod validation instead of the default token
+    serviceAccountTokenProjection: true
+
+    issuer:
+      scheme: linkerd.io/tls
+
+      # -- Amount of time to allow for clock skew within a Linkerd cluster
+      clockSkewAllowance: 20s
+
+      # -- Amount of time for which the Identity issuer should certify identity
+      issuanceLifetime: 24h0m0s
+
+  # proxy injector configuration
+  proxyInjector:
+    externalSecret: true
+
+    # -- Inject the CA bundle from a cert-manager Certificate.
+    # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
+    # for more information.
+    injectCaFrom: "linkerd/linkerd-proxy-injector"
+
+  # service profile validator configuration
+  profileValidator:
+    externalSecret: true
+
+    # -- Inject the CA bundle from a cert-manager Certificate.
+    # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
+    # for more information.
+    injectCaFrom: "linkerd/linkerd-sp-validator"
+
+  # policy validator configuration
+  policyValidator:
+    # -- Do not create a secret resource for the policyValidator webhook.
+    # If this is set to `true`, the value `policyValidator.caBundle` must be set
+    # or the ca bundle must injected with cert-manager ca injector using
+    # `policyValidator.injectCaFrom` or `policyValidator.injectCaFromSecret` (see below).
+    externalSecret: true
+
+    # -- Inject the CA bundle from a cert-manager Certificate.
+    # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
+    # for more information.
+    injectCaFrom: "linkerd/linkerd-policy-validator"
+
+  tolerations:
+    - key: observability
+      operator: Exists
+      effect: NoSchedule
+
+  # -- url of external prometheus instance (used for the heartbeat)
+  prometheusUrl: "prometheus-kube-prometheus-prometheus.prometheus:9090"
