@@ -141,7 +141,7 @@ linkerd-control-plane:
 
   identity:
     # -- If the linkerd-identity-trust-roots ConfigMap has already been created
-    externalCA: true
+    externalCA: false
 
     # -- Use [Service Account token Volume projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection) for pod validation instead of the default token
     serviceAccountTokenProjection: true
@@ -162,7 +162,7 @@ linkerd-control-plane:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFrom: "linkerd/linkerd-proxy-injector"
+    injectCaFrom: "certificates/linkerd-proxy-injector"
 
   # service profile validator configuration
   profileValidator:
@@ -171,7 +171,7 @@ linkerd-control-plane:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFrom: "linkerd/linkerd-sp-validator"
+    injectCaFrom: "certificates/linkerd-sp-validator"
 
   # policy validator configuration
   policyValidator:
@@ -184,7 +184,7 @@ linkerd-control-plane:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFrom: "linkerd/linkerd-policy-validator"
+    injectCaFrom: "certificates/linkerd-policy-validator"
 
   tolerations:
     - key: observability

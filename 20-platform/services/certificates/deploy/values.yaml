@@ -1,0 +1,5 @@
+# certficiate:
+#   name: linkerd-identity-issuer-tls
+
+# issuer:
+#   name: linkerd-self-signed-issuer
