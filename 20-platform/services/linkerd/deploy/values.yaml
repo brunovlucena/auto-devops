@@ -141,7 +141,7 @@ linkerd-control-plane:
 
   identity:
     # -- If the linkerd-identity-trust-roots ConfigMap has already been created
-    externalCA: false
+    externalCA: true
 
     # -- Use [Service Account token Volume projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection) for pod validation instead of the default token
     serviceAccountTokenProjection: true
@@ -155,41 +155,19 @@ linkerd-control-plane:
       # -- Amount of time for which the Identity issuer should certify identity
       issuanceLifetime: 24h0m0s
 
-    # -- Which scheme is used for the identity issuer secret format
-    tls:
-      crtPEM: |
-        -----BEGIN CERTIFICATE-----
-        MIIBszCCAVmgAwIBAgIRALfxQboWG5bPj8YyCRBPUIwwCgYIKoZIzj0EAwIwJTEj
-        MCEGA1UEAxMacm9vdC5saW5rZXJkLmNsdXN0ZXIubG9jYWwwHhcNMjUwNjA1MjMw
-        MzMxWhcNMzUwNjAzMjMwMzMxWjApMScwJQYDVQQDEx5pZGVudGl0eS5saW5rZXJk
-        LmNsdXN0ZXIubG9jYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQUFVVe70f9
-        BQ9hHqZHNQ+4ZUm9ot6hLw9IENOCHLpSD8GorfCXLj5o4MWqxIjVZv5Izm17tBWh
-        F8N4BiP+d2rqo2YwZDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIB
-        ADAdBgNVHQ4EFgQUIY8DlG6BBeGLpxV6ccoFqQd2J3owHwYDVR0jBBgwFoAUrjn3
-        /Z9Z6HtMI9NZNCrcIAlWZwswCgYIKoZIzj0EAwIDSAAwRQIhAMO04EM0v8mhUOcT
-        UUcFZ1YF4gOjmL724OKuKFCtwwmLAiBQGjgfjGU2ApvH7hCkc57ihnzzVxjBvYQ0
-        UDzNKm/93A==
-        -----END CERTIFICATE-----
-      keyPEM: |
-        -----BEGIN EC PRIVATE KEY-----
-        MHcCAQEEIODUF06FlLOkx1FufiRdk7MDceYNvSToAQEEZvf+o5gOoAoGCCqGSM49
-        AwEHoUQDQgAEFBVVXu9H/QUPYR6mRzUPuGVJvaLeoS8PSBDTghy6Ug/BqK3wly4+
-        aODFqsSI1Wb+SM5te7QVoRfDeAYj/ndq6g==
-        -----END EC PRIVATE KEY-----
-
   # proxy injector configuration
   proxyInjector:
-    externalSecret: false
+    externalSecret: true
 
 
   # service profile validator configuration
   profileValidator:
-    externalSecret: false
+    externalSecret: true
 
 
   # policy validator configuration
   policyValidator:
-    externalSecret: false
+    externalSecret: true
 
 
   tolerations:

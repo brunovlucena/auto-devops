@@ -1,7 +1,16 @@
-# apiVersion: cert-manager.io/v1
-# kind: Issuer
-# metadata:
-#   name: linkerd-self-signed-issuer
-#   namespace: linkerd
-# spec:
-#   selfSigned: {}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: linkerd-self-signed-issuer
+  namespace: linkerd
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: linkerd-ca-issuer
+  namespace: linkerd
+spec:
+  ca:
+    secretName: linkerd-trust-anchor
