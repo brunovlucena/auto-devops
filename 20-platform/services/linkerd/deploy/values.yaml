@@ -147,7 +147,7 @@ linkerd-control-plane:
     serviceAccountTokenProjection: true
 
     issuer:
-      scheme: kubernetes.io/tls
+      scheme: linkerd.io/tls
 
       # -- Amount of time to allow for clock skew within a Linkerd cluster
       clockSkewAllowance: 20s
@@ -155,32 +155,44 @@ linkerd-control-plane:
       # -- Amount of time for which the Identity issuer should certify identity
       issuanceLifetime: 24h0m0s
 
+    # -- Which scheme is used for the identity issuer secret format
+    tls:
+      crtPEM: |
+        -----BEGIN CERTIFICATE-----
+        MIIBszCCAVmgAwIBAgIRALfxQboWG5bPj8YyCRBPUIwwCgYIKoZIzj0EAwIwJTEj
+        MCEGA1UEAxMacm9vdC5saW5rZXJkLmNsdXN0ZXIubG9jYWwwHhcNMjUwNjA1MjMw
+        MzMxWhcNMzUwNjAzMjMwMzMxWjApMScwJQYDVQQDEx5pZGVudGl0eS5saW5rZXJk
+        LmNsdXN0ZXIubG9jYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQUFVVe70f9
+        BQ9hHqZHNQ+4ZUm9ot6hLw9IENOCHLpSD8GorfCXLj5o4MWqxIjVZv5Izm17tBWh
+        F8N4BiP+d2rqo2YwZDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIB
+        ADAdBgNVHQ4EFgQUIY8DlG6BBeGLpxV6ccoFqQd2J3owHwYDVR0jBBgwFoAUrjn3
+        /Z9Z6HtMI9NZNCrcIAlWZwswCgYIKoZIzj0EAwIDSAAwRQIhAMO04EM0v8mhUOcT
+        UUcFZ1YF4gOjmL724OKuKFCtwwmLAiBQGjgfjGU2ApvH7hCkc57ihnzzVxjBvYQ0
+        UDzNKm/93A==
+        -----END CERTIFICATE-----
+      keyPEM: |
+        -----BEGIN EC PRIVATE KEY-----
+        MHcCAQEEIODUF06FlLOkx1FufiRdk7MDceYNvSToAQEEZvf+o5gOoAoGCCqGSM49
+        AwEHoUQDQgAEFBVVXu9H/QUPYR6mRzUPuGVJvaLeoS8PSBDTghy6Ug/BqK3wly4+
+        aODFqsSI1Wb+SM5te7QVoRfDeAYj/ndq6g==
+        -----END EC PRIVATE KEY-----
+
   # proxy injector configuration
   proxyInjector:
-    externalSecret: true
+    externalSecret: false
 
     injectCaFromSecret: "linkerd/linkerd-proxy-injector-k8s-tls"
 
   # service profile validator configuration
   profileValidator:
-    externalSecret: true
+    externalSecret: false
 
-    # -- Inject the CA bundle from a cert-manager Certificate.
-    # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
-    # for more information.
     injectCaFromSecret: "linkerd/linkerd-sp-validator-k8s-tls"
 
   # policy validator configuration
   policyValidator:
-    # -- Do not create a secret resource for the policyValidator webhook.
-    # If this is set to `true`, the value `policyValidator.caBundle` must be set
-    # or the ca bundle must injected with cert-manager ca injector using
-    # `policyValidator.injectCaFrom` or `policyValidator.injectCaFromSecret` (see below).
-    externalSecret: true
+    externalSecret: false
 
-    # -- Inject the CA bundle from a cert-manager Certificate.
-    # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
-    # for more information.
     injectCaFromSecret: "linkerd/linkerd-policy-validator-k8s-tls"
 
   tolerations:
@@ -239,4 +251,4 @@ linkerd-jaeger:
     # -- Inject the CA bundle from a cert-manager Certificate.
     # See the cert-manager [CA Injector Docs](https://cert-manager.io/docs/concepts/ca-injector/#injecting-ca-data-from-a-certificate-resource)
     # for more information.
-    injectCaFromSecret: "linkerd/linkerd-jaeger-webhook"
+    injectCaFromSecret: "linkerd/linkerd-jaeger-webhook-k8s-tls"

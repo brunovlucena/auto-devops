@@ -1,69 +1,69 @@
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: linkerd-identity-issuer
-  namespace: linkerd
-spec:
-  secretName: linkerd-identity-issuer
-  duration: 8760h # 1 year
-  renewBefore: 360h # 15 days
-  issuerRef:
-    name: linkerd-self-signed-issuer
-    kind: Issuer
-  commonName: linkerd-identity-issuer
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: linkerd-proxy-injector
-  namespace: linkerd
-spec:
-  secretName: linkerd-proxy-injector-k8s-tls
-  duration: 8760h
-  renewBefore: 360h
-  issuerRef:
-    name: linkerd-self-signed-issuer
-    kind: Issuer
-  commonName: linkerd-proxy-injector
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: linkerd-sp-validator
-  namespace: linkerd
-spec:
-  secretName: linkerd-sp-validator-k8s-tls
-  duration: 8760h
-  renewBefore: 360h
-  issuerRef:
-    name: linkerd-self-signed-issuer
-    kind: Issuer
-  commonName: linkerd-sp-validator
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: linkerd-policy-validator
-  namespace: linkerd
-spec:
-  secretName: linkerd-policy-validator-k8s-tls
-  duration: 8760h
-  renewBefore: 360h
-  issuerRef:
-    name: linkerd-self-signed-issuer
-    kind: Issuer
-  commonName: linkerd-policy-validator
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: linkerd-jaeger-webhook
-  namespace: linkerd
-spec:
-  secretName: linkerd-jaeger-webhook
-  duration: 8760h
-  renewBefore: 360h
-  issuerRef:
-    name: linkerd-self-signed-issuer
-    kind: Issuer
-  commonName: linkerd-jaeger-webhook
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: linkerd-identity-issuer
+#   namespace: linkerd
+# spec:
+#   secretName: linkerd-identity-issuer
+#   duration: 8760h # 1 year
+#   renewBefore: 360h # 15 days
+#   issuerRef:
+#     name: linkerd-self-signed-issuer
+#     kind: Issuer
+#   commonName: linkerd-identity-issuer
+# ---
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: linkerd-proxy-injector
+#   namespace: linkerd
+# spec:
+#   secretName: linkerd-proxy-injector-k8s-tls
+#   duration: 8760h
+#   renewBefore: 360h
+#   issuerRef:
+#     name: linkerd-self-signed-issuer
+#     kind: Issuer
+#   commonName: linkerd-proxy-injector
+# ---
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: linkerd-sp-validator
+#   namespace: linkerd
+# spec:
+#   secretName: linkerd-sp-validator-k8s-tls
+#   duration: 8760h
+#   renewBefore: 360h
+#   issuerRef:
+#     name: linkerd-self-signed-issuer
+#     kind: Issuer
+#   commonName: linkerd-sp-validator
+# ---
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: linkerd-policy-validator
+#   namespace: linkerd
+# spec:
+#   secretName: linkerd-policy-validator-k8s-tls
+#   duration: 8760h
+#   renewBefore: 360h
+#   issuerRef:
+#     name: linkerd-self-signed-issuer
+#     kind: Issuer
+#   commonName: linkerd-policy-validator
+# ---
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: linkerd-jaeger-webhook
+#   namespace: linkerd
+# spec:
+#   secretName: linkerd-jaeger-webhook
+#   duration: 8760h
+#   renewBefore: 360h
+#   issuerRef:
+#     name: linkerd-self-signed-issuer
+#     kind: Issuer
+#   commonName: linkerd-jaeger-webhook
