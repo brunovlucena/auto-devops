@@ -133,7 +133,7 @@ metadata:
     linkerd.io/control-plane-component: identity
     linkerd.io/control-plane-ns: linkerd
 data:
-  tls.crt: |
+  ca-bundle.crt: |
     -----BEGIN CERTIFICATE-----
     MIIBjjCCATSgAwIBAgIQdZeGNuAHZhXSmb+rUjwMkTAKBggqhkjOPQQDAjAlMSMw
     IQYDVQQDExpyb290LmxpbmtlcmQuY2x1c3Rlci5sb2NhbDAeFw0yNTA2MDUyMzE2
