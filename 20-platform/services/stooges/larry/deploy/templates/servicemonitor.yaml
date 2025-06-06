@@ -17,7 +17,7 @@ spec:
       {{- include "larry-service.selectorLabels" . | nindent 6 }}
   endpoints:
   - port: http
-    path: {{ .Values.metrics.path }}
+    path: {{ .Values.serviceMonitor.path }}
     interval: {{ .Values.serviceMonitor.interval }}
     scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
     honorLabels: true

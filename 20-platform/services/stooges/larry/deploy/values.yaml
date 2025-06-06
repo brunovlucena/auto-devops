@@ -74,6 +74,7 @@ serviceMonitor:
   labels: {}
   interval: 30s
   path: /metrics
+  scrapeTimeout: 10s
 
 # Resource limits and requests
 resources:
