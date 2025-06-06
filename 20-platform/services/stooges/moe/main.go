@@ -190,7 +190,7 @@ func moeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, span := tracer.Start(r.Context(), "health-check")
+	_, span := tracer.Start(r.Context(), "health-check")
 	defer span.End()
 
 	response := map[string]string{

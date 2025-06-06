@@ -4,7 +4,7 @@
 replicaCount: 1
 
 image:
-  repository: larry-service
+  repository: ghcr.io/brunovlucena/larry-service
   pullPolicy: IfNotPresent
   tag: ""
 

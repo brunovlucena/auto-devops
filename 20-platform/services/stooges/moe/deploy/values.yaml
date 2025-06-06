@@ -4,7 +4,7 @@
 replicaCount: 1
 
 image:
-  repository: moe-service
+  repository: ghcr.io/brunovlucena/moe-service
   pullPolicy: IfNotPresent
   tag: ""
 
