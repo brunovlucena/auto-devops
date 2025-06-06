@@ -10,79 +10,79 @@ metadata:
   name: knative-eventing
   namespace: knative-eventing
 spec:
-  workloads:
-    - name: eventing-controller
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
-    - name: eventing-webhook
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
-    - name: icm-controller
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
-    - name: icm-dispatcher
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
-    - name: pingsource-mt-adapter
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
-    - name: job-sink
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
-    - name: mt-broker-controller
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
-    - name: mt-broker-filter
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
-    - name: mt-broker-ingress
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: "knative"
-          operator: "Equal"
-          value: "true"
-          effect: "NoSchedule"
+  # workloads:
+  #   - name: eventing-controller
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #   - name: eventing-webhook
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #   - name: icm-controller
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #   - name: icm-dispatcher
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #   - name: pingsource-mt-adapter
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #   - name: job-sink
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #   - name: mt-broker-controller
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #   - name: mt-broker-filter
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
+  #   - name: mt-broker-ingress
+  #     nodeSelector:
+  #       knative: "true"
+  #     tolerations:
+  #       - key: "knative"
+  #         operator: "Equal"
+  #         value: "true"
+  #         effect: "NoSchedule"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
