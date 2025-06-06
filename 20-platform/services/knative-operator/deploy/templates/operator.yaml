@@ -163,13 +163,13 @@ spec:
                   value: "webhook"
             failureThreshold: 6
             initialDelaySeconds: 120
-      tolerations:
-        - key: knative
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-      nodeSelector:
-        knative: "true"
+      # tolerations:
+      #   - key: knative
+      #     operator: Equal
+      #     value: "true"
+      #     effect: NoSchedule
+      # nodeSelector:
+      #   knative: "true"
       # Our webhook should gracefully terminate by lame ducking first, set this to a sufficiently
       terminationGracePeriodSeconds: 300
 
