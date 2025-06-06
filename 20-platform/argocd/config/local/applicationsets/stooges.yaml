@@ -1,5 +1,5 @@
 apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+kind: Application
 metadata:
   name: larry
   namespace: argocd
@@ -33,7 +33,7 @@ spec:
         - values.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+kind: Application
 metadata:
   name: curly
   namespace: argocd
@@ -67,7 +67,7 @@ spec:
         - values.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+kind: Application
 metadata:
   name: moe
   namespace: argocd
