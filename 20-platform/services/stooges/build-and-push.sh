@@ -84,10 +84,13 @@ fi
 
 # Check if user is logged into GitHub Container Registry
 print_status "Checking GitHub Container Registry authentication..."
-if ! docker pull ghcr.io/hello-world > /dev/null 2>&1; then
-    print_warning "You may need to authenticate with GitHub Container Registry."
-    print_warning "Run: echo \$CR_PAT | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin"
+if ! echo "test" | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin > /dev/null 2>&1; then
+    print_warning "You need to authenticate with GitHub Container Registry."
+    print_warning "Please run the following command with your GitHub Personal Access Token:"
+    print_warning "echo \$CR_PAT | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin"
     print_warning "Where CR_PAT is your GitHub Personal Access Token with packages:write scope"
+    print_error "Authentication required. Please login and try again."
+    exit 1
 fi
 
 # Store the current directory
@@ -115,8 +118,4 @@ for service in "${services[@]}"; do
     echo "  - ${REGISTRY}/${GITHUB_USERNAME}/${service}-service:${TAG}"
 done
 
-print_status "You can now update your Helm values.yaml files to reference these images."
-
-echo $CR_PAT | docker login ghcr.io -u brunovlucena --password-stdin 
-
-export CR_PAT=your_token_here 
+print_status "You can now update your Helm values.yaml files to reference these images." 
