@@ -28,7 +28,7 @@ const PORT = process.env.PORT || 8082;
 app.use(express.json());
 
 // Prometheus metrics
-const register = new promClient.Register();
+const register = new promClient.Registry();
 
 const requestsTotal = new promClient.Counter({
   name: 'curly_requests_total',

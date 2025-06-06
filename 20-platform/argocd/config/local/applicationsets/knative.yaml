@@ -1,0 +1,70 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: knative-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "knative-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "knative-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "knative-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "knative-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "knative-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: knative-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/knative-operator/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: knative-operator
+      valueFiles:
+        - values.yaml
+        - overlays/prd/values-prd.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: knative-lambda
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "knative-lambda-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "knative-lambda-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "knative-lambda-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "knative-lambda-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "knative-lambda-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: knative-lambda
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/knative-lambda/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: knative-lambda
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml
