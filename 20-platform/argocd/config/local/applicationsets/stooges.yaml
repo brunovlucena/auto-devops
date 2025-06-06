@@ -1,0 +1,101 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: larry
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "larry-service-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "larry-service-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "larry-service-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "larry-service-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "larry-service-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stooges
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/stooges/larry/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: larry-service
+      valueFiles:
+        - values.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: curly
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "curly-service-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "curly-service-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "curly-service-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "curly-service-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "curly-service-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stooges
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/stooges/curly/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: curly-service
+      valueFiles:
+        - values.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: moe
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "moe-service-deployment-succeeded" 
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "moe-service-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "moe-service-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "moe-service-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "moe-service-status-unknown"
+    recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stooges
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/stooges/moe/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: moe-service
+      valueFiles:
+        - values.yaml 
