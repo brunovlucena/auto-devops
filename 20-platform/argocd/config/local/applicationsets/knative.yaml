@@ -32,7 +32,7 @@ spec:
       releaseName: knative-operator
       valueFiles:
         - values.yaml
-        - overlays/prd/values-prd.yaml
+        - overlays/local/values-local.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
