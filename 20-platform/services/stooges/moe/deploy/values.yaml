@@ -64,7 +64,7 @@ env:
   - name: PORT
     value: "8080"
   - name: JAEGER_ENDPOINT
-    value: "http://jaeger-collector:14268/api/traces"
+    value: "http://tempo-distributor.tempo:3100"
   - name: LARRY_SERVICE_URL
     value: "http://larry-service:8081"
 
