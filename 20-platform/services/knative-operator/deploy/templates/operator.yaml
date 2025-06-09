@@ -4739,15 +4739,13 @@ spec:
         sidecar.istio.io/inject: "false"
     spec:
       serviceAccountName: knative-operator
-      nodeSelector:
-        knative: "true"
-      tolerations:
-        - key: knative
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-      nodeSelector:
-        knative: "true"
+      # nodeSelector:
+      #   knative: "true"
+      # tolerations:
+      #   - key: knative
+      #     operator: Equal
+      #     value: "true"
+      #     effect: NoSchedule
       containers:
         - name: knative-operator
           image: gcr.io/knative-releases/knative.dev/operator/cmd/operator:v1.18.0
