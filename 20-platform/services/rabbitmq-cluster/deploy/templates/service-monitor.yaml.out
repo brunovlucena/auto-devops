@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rabbitmq-cluster
+  labels:
+    release: rabbitmq  # Adjust this label to match your Prometheus release label
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq  # This should match the labels on your RabbitMQ service
+  endpoints:
+  - port: prometheus  # This should match the name of the port in your RabbitMQ service
+    interval: 30s
+    path: /metrics
+  namespaceSelector:
+    matchNames:
+    - rabbitmq  # Adjust this to the namespace where your RabbitMQ service is deployed

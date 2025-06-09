@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-deployment
+  namespace: knative-serving
+data:
+  registriesSkippingTagResolving: "kind-registry:5000,localhost:5001" 

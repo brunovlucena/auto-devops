@@ -1,0 +1,96 @@
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: istio
+#   namespace: argocd
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+#   annotations:
+#     notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "istio-deployment-succeeded"
+#     notifications.argoproj.io/subscribe.on-health-degraded.grafana: "istio-degraded"
+#     notifications.argoproj.io/subscribe.on-sync-failed.grafana: "istio-sync-failed"
+#     notifications.argoproj.io/subscribe.on-deployed.grafana: "istio-deployed"
+#     notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "istio-status-unknown"
+#     recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+# spec:
+#   project: platform
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: istio-system
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#   source:
+#     repoURL: git@github.com:brunovlucena/auto-devops.git
+#     path: 20-platform/services/istio/deploy
+#     targetRevision: HEAD
+#     helm:
+#       releaseName: istio
+#       valueFiles:
+#         - values.yaml
+#         - overlays/local/values-local.yaml
+
+---
+
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: linkerd
+#   namespace: argocd
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+#   annotations:
+#     notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "linkerd-deployment-succeeded"
+#     notifications.argoproj.io/subscribe.on-health-degraded.grafana: "linkerd-degraded"
+#     notifications.argoproj.io/subscribe.on-sync-failed.grafana: "linkerd-sync-failed"
+#     notifications.argoproj.io/subscribe.on-deployed.grafana: "linkerd-deployed"
+#     notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "linkerd-status-unknown"
+#     recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
+# spec:
+#   project: platform
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: linkerd
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#   source:
+#     repoURL: git@github.com:brunovlucena/auto-devops.git
+#     path: 20-platform/services/linkerd/deploy
+#     targetRevision: HEAD
+#     helm:
+#       releaseName: linkerd
+#       valueFiles:
+#         - values.yaml
+
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: certificates
+#   namespace: argocd
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+# spec:
+#   project: platform
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: certificates
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
+#   source:
+#     repoURL: git@github.com:brunovlucena/auto-devops.git
+#     path: 20-platform/services/certificates/deploy
+#     targetRevision: HEAD
+#     helm:
+#       releaseName: certificates
+#       valueFiles:
+#         - values.yaml
+#         - overlays/local/values-local.yaml
