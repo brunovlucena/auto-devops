@@ -1,4 +1,9 @@
 minio:
+
+  metrics:
+    serviceMonitor:
+      enabled: false
+
   ## Set default rootUser, rootPassword
   ## rootUser and rootPassword is generated when not set
   ## Distributed MinIO ref: https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-multi-node-multi-drive.html
@@ -112,6 +117,3 @@ minio:
       # bucket [true|false] NOTE: versioning is enabled by default if you use locking
       objectlocking: false
 
-  metrics:
-    serviceMonitor:
-      enabled: true
