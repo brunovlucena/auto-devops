@@ -14,7 +14,7 @@ spec:
         image: "gcr.io/kaniko-project/executor:latest"
         args:
         - "--dockerfile={{.Dockerfile}}"
-        - "--context=s3://{{.ThirdPartyId}}/{{.ParserId}}.tar.gz"
+        - "--context=s3://{{.BucketName}}/builds/{{.ThirdPartyId}}/{{.ParserId}}.tar.gz"
         - "--destination={{.ImageTag}}"
         - "--cache=true"
         - "--cache-ttl=24h"

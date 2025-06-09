@@ -33,3 +33,33 @@ spec:
       valueFiles:
         - values.yaml
         - overlays/local/values-local.yaml
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: certificates
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: certificates
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    repoURL: git@github.com:brunovlucena/auto-devops.git
+    path: 20-platform/services/certificates/deploy
+    targetRevision: HEAD
+    helm:
+      releaseName: certificates
+      valueFiles:
+        - values.yaml
+        - overlays/local/values-local.yaml

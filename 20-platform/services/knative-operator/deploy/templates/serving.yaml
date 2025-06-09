@@ -21,51 +21,51 @@ spec:
     network:
       ingress-class: "kourier.ingress.networking.knative.dev"
   workloads:
-    # - name: activator
-    #   nodeSelector:
-    #     knative: "true"
-    #   tolerations:
-    #     - key: "knative"
-    #       operator: "Equal"
-    #       value: "true"
-    #       effect: "NoSchedule"
-    # - name: autoscaler
-    #   nodeSelector:
-    #     knative: "true"
-    #   tolerations:
-    #     - key: "knative"
-    #       operator: "Equal"
-    #       value: "true"
-    #       effect: "NoSchedule"
-    # - name: autoscaler-hpa
-    #   nodeSelector:
-    #     knative: "true"
-    #   tolerations:
-    #     - key: "knative"
-    #       operator: "Equal"
-    #       value: "true"
-    #       effect: "NoSchedule"
-    # - name: cleanup-serving-serving
-    #   nodeSelector:
-    #     knative: "true"
-    #   tolerations:
-    #     - key: "knative"
-    #       operator: "Equal"
-    #       value: "true"
-    #       effect: "NoSchedule"
-    # - name: controller
-    #   nodeSelector:
-    #     knative: "true"
-    #   tolerations:
-    #     - key: "knative"
-    #       operator: "Equal"
-    #       value: "true"
-    #       effect: "NoSchedule"
-    # - name: webhook
-    #   nodeSelector:
-    #     knative: "true"
-    #   tolerations:
-    #     - key: "knative"
-    #       operator: "Equal"
-    #       value: "true"
-    #       effect: "NoSchedule"
+    - name: activator
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: autoscaler
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: autoscaler-hpa
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: cleanup-serving-serving
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: controller
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    - name: webhook
+      nodeSelector:
+        knative: "true"
+      tolerations:
+        - key: "knative"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"

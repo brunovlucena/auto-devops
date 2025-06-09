@@ -1,23 +1,24 @@
+
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: knative-operator
+  name: redis
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "knative-deployment-succeeded"
-    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "knative-degraded"
-    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "knative-sync-failed"
-    notifications.argoproj.io/subscribe.on-deployed.grafana: "knative-deployed"
-    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "knative-status-unknown"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "redis-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "redis-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "redis-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "redis-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "redis-status-unknown"
     recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
 spec:
   project: platform
   destination:
     server: https://kubernetes.default.svc
-    namespace: knative-operator
+    namespace: redis
   syncPolicy:
     automated:
       prune: true
@@ -26,10 +27,10 @@ spec:
       - CreateNamespace=false
   source:
     repoURL: git@github.com:brunovlucena/auto-devops.git
-    path: 20-platform/services/knative-operator/deploy
+    path: 20-platform/services/redis/deploy
     targetRevision: HEAD
     helm:
-      releaseName: knative-operator
+      releaseName: redis
       valueFiles:
         - values.yaml
         - overlays/local/values-local.yaml
@@ -39,22 +40,22 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: knative-lambda
+  name: mongodb
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "knative-lambda-deployment-succeeded"
-    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "knative-lambda-degraded"
-    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "knative-lambda-sync-failed"
-    notifications.argoproj.io/subscribe.on-deployed.grafana: "knative-lambda-deployed"
-    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "knative-lambda-status-unknown"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.grafana: "mongodb-deployment-succeeded"
+    notifications.argoproj.io/subscribe.on-health-degraded.grafana: "mongodb-degraded"
+    notifications.argoproj.io/subscribe.on-sync-failed.grafana: "mongodb-sync-failed"
+    notifications.argoproj.io/subscribe.on-deployed.grafana: "mongodb-deployed"
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.grafana: "mongodb-status-unknown"
     recipients.argocd-notifications.argoproj.io: "slack:platform-alerts"
 spec:
   project: platform
   destination:
     server: https://kubernetes.default.svc
-    namespace: knative-lambda
+    namespace: mongodb
   syncPolicy:
     automated:
       prune: true
@@ -63,10 +64,10 @@ spec:
       - CreateNamespace=false
   source:
     repoURL: git@github.com:brunovlucena/auto-devops.git
-    path: 20-platform/services/knative-lambda/deploy
+    path: 20-platform/services/mongodb/deploy
     targetRevision: HEAD
     helm:
-      releaseName: knative-lambda
+      releaseName: mongodb
       valueFiles:
         - values.yaml
         - overlays/local/values-local.yaml

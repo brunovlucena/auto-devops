@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Create a CloudEvent named network.notifi.lambda.build
 # it shall have thirdPartyId and parserId as payload
 import json
@@ -12,13 +13,13 @@ def create_cloud_event(third_party_id, parser_id):
         "specversion": "1.0",
         "id": str(uuid.uuid4()),
         "source": f"network.notifi.parsers.{third_party_id}.{parser_id}",
-        "type": "network.notifi.lambda.parser.start",
+        "type": "network.notifi.lambda.build.start",
         "time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         
         # Custom data payload
         "data": {
-            "contextId": "soon to be encrypted ctxId",
-            "params": {},
+            "thirdPartyId": third_party_id,
+            "parserId": f"{parser_id}",
         },
         
         # Optional attributes
@@ -34,9 +35,10 @@ def publish_to_rabbitmq(cloud_event, rabbitmq_url="amqp://notifi:notifi@localhos
     
     # Declare exchange and queue
     exchange_name = "cloud-events"
-    queue_name = "lambda-service-events"
-    routing_key = "network.notifi.lambda.parser.start"
+    queue_name = "lambda-build-events"
+    routing_key = "network.notifi.lambda.build.start"
     
+    # Uncomment the following lines if you want to declare the exchange and queue outside of the function
     # channel.exchange_declare(exchange=exchange_name, exchange_type="topic", durable=True)
     # channel.queue_declare(queue=queue_name, durable=True)
     # channel.queue_bind(queue=queue_name, exchange=exchange_name, routing_key=routing_key)
@@ -55,15 +57,14 @@ def publish_to_rabbitmq(cloud_event, rabbitmq_url="amqp://notifi:notifi@localhos
     connection.close()
     print(f"Published CloudEvent: {cloud_event['id']}")
 
-# Usage example
 if __name__ == "__main__":
-    # Test test-lambda-builder-123.index-0001
+    # Build test-lambda-builder-123.index-0001
     third_party_id = "test-lambda-builder-123"
     parser_id = "index-0001"
     event = create_cloud_event(third_party_id, parser_id)
     publish_to_rabbitmq(event)
 
-    # # Test test-lambda-builder-456.index-0002
+    # # Build test-lambda-builder-456.index-0002
     # third_party_id = "test-lambda-builder-456"
     # parser_id = "index-0002"
     # event = create_cloud_event(third_party_id, parser_id)
