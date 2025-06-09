@@ -28,7 +28,7 @@ spec:
         - name: "AWS_REGION"
           value: "{{.Region}}"
         - name: "AWS_ECR_REGISTRY"
-          value: "{{.AccountId}}.dkr.ecr.{{.Region}}.amazonaws.com"
+          value: "localhost:5000/knative-lambdas"
         - name: "AWS_ACCESS_KEY_ID"
           valueFrom:
             secretKeyRef:

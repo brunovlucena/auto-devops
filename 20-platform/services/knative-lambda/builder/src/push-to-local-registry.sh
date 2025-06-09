@@ -11,14 +11,14 @@
 # If TAG is omitted, "latest" is used.
 # Prerequisites:
 #   • Docker daemon running
-#   • Local registry running at localhost:5001
+#   • Local registry running at localhost:5001 (accessible as kind-registry:5000 from cluster)
 #   • You are at the repo root when invoking the script
 # ------------------------------------------------------------------------------
 
 set -euo pipefail
 
 TAG=${1:-latest}
-LOCAL_REGISTRY="localhost:5001"
+LOCAL_REGISTRY="kind-registry:5001"
 
 # Function to build and push an image
 build_and_push() {
