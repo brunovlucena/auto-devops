@@ -16,8 +16,10 @@ minio:
   ## others depend on enabled status of corresponding sections.
   # existingSecret: ""
 
+  # Set mode to standalone since we're using a single replica
+  mode: standalone
   # Number of drives attached to a node
-  drivesPerNode: 1
+  drivesPerNode: 2
   # Number of MinIO containers running
   replicas: 1
   # Number of expanded MinIO clusters
