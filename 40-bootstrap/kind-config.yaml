@@ -1,6 +1,13 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: auto-devops
+containerdConfigPatches:
+# docker run -d --restart=always -p "127.0.0.1:5001:5000" --name "kind-registry" registry:2
+# docker network connect "kind" "kind-registry"
+# docker tag my-image:latest localhost:5001/knative-lambda-builder:latest
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5001"]
+    endpoint = ["http://kind-registry:5000"]
 nodes:
 - role: control-plane
   image: kindest/node:v1.33.0

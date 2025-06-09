@@ -18,7 +18,7 @@ spec:
     spec:
       serviceAccountName: knative-lambda-builder
       containers:
-      - image: ghcr.io/brunovlucena/knative-lambda-builder:latest
+      - image: localhost:5001/knative-lambda-builder:latest # TODO: Locally
         imagePullPolicy: Always
         env:
           - name: ECR_REPO_PREFIX

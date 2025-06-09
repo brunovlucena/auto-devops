@@ -5,4 +5,4 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   AWS_REGION: "us-west-2"
-  AWS_ECR_REGISTRY: "{{ .Values.accountId }}.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas" 
+  AWS_ECR_REGISTRY: "{{ .Values.accountId }}.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas"  # TODO: use minio
