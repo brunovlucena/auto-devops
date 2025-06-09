@@ -39,7 +39,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: certificates
+  name: cert-manager
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -47,7 +47,7 @@ spec:
   project: platform
   destination:
     server: https://kubernetes.default.svc
-    namespace: certificates
+    namespace: cert-manager
   syncPolicy:
     automated:
       prune: true
@@ -56,10 +56,10 @@ spec:
       - CreateNamespace=true
   source:
     repoURL: git@github.com:brunovlucena/auto-devops.git
-    path: 20-platform/services/certificates/deploy
+    path: 20-platform/services/cert-manager/deploy
     targetRevision: HEAD
     helm:
-      releaseName: certificates
+      releaseName: cert-manager
       valueFiles:
         - values.yaml
         - overlays/local/values-local.yaml
