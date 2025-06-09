@@ -655,13 +655,13 @@ spec:
               memory: 100Mi
       serviceAccount: rabbitmq-controller-manager
       terminationGracePeriodSeconds: 10
-      tolerations:
-        - key: knative
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-      nodeSelector:
-        knative: "true"
+      # tolerations:
+      #   - key: knative
+      #     operator: Equal
+      #     value: "true"
+      #     effect: NoSchedule
+      # nodeSelector:
+      #   knative: "true"
 
 ---
 # Copyright 2020 The Knative Authors
@@ -760,13 +760,13 @@ spec:
       # Our webhook should gracefully terminate by lame ducking first, set this to a sufficiently
       # high value that we respect whatever value it has configured for the lame duck grace period.
       terminationGracePeriodSeconds: 300
-      tolerations:
-        - key: knative
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-      nodeSelector:
-        knative: "true"
+      # tolerations:
+      #   - key: knative
+      #     operator: Equal
+      #     value: "true"
+      #     effect: NoSchedule
+      # nodeSelector:
+      #   knative: "true"
 
 ---
 apiVersion: v1
