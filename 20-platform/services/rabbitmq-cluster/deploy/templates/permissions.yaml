@@ -15,3 +15,21 @@ spec:
     configure: ".*"
     read:      ".*"
     write:     ".*"
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: test-full-access
+  namespace: rabbitmq
+spec:
+  vhost: /
+  userReference:
+    name: test
+    namespace: rabbitmq
+  rabbitmqClusterReference:
+    name: rabbitmq-cluster
+    namespace: rabbitmq
+  permissions:
+    configure: ".*"
+    read:      ".*"
+    write:     ".*"

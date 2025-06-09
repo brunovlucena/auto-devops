@@ -29,7 +29,7 @@ def create_cloud_event(third_party_id, parser_id):
     return event
 
 # Publish the CloudEvent to RabbitMQ
-def publish_to_rabbitmq(cloud_event, rabbitmq_url="amqp://notifi:notifi@localhost:5672/"):
+def publish_to_rabbitmq(cloud_event, rabbitmq_url="amqp://test:test@localhost:5672/"):
     connection = pika.BlockingConnection(pika.URLParameters(rabbitmq_url))
     channel = connection.channel()
     
