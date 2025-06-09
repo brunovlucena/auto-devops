@@ -18,11 +18,11 @@ spec:
     spec:
       serviceAccountName: knative-lambda-builder
       containers:
-      - image: {{ .Values.accountId }}.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas/knative-lambda-builder:latest
+      - image: ghcr.io/brunovlucena/knative-lambda-builder:latest
         imagePullPolicy: Always
         env:
           - name: ECR_REPO_PREFIX
-            value: "{{ .Values.accountId }}.dkr.ecr.us-west-2.amazonaws.com/knative-lambdas"
+            value: "ghcr.io/brunovlucena/knative-lambda-builder"
       # tolerations:
       #   - key: knative-spot
       #     operator: Equal
@@ -36,8 +36,8 @@ kind: ServiceAccount
 metadata:
   name: knative-lambda-builder
   namespace: knative-lambda
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.accountId }}:role/{{ .Values.roleName }}
+  # annotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.accountId }}:role/{{ .Values.roleName }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

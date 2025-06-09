@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 	"runtime"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
@@ -134,12 +133,3 @@ func main() {
 //    - Better control over external dependencies
 //
 // =============================================================================
-
-// getWorkingDirectory remains as a simple utility
-func getWorkingDirectory() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "Error getting working directory"
-	}
-	return dir
-}

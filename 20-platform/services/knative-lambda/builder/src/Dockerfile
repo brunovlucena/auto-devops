@@ -26,15 +26,6 @@ WORKDIR /build
 # 🎯 STRATEGY: Copy go.mod first to cache dependency downloads
 # 💡 WHY: Dependencies change less frequently than source code
 
-# Copy go.mod file first (for better layer caching)
-COPY go.mod ./
-
-# Copy go.sum if it exists (use wildcard to make it optional)
-COPY go.su[m] ./
-
-# Download dependencies and create go.sum if it doesn't exist
-# This layer gets cached if go.mod doesn't change
-RUN go mod download && go mod tidy
 
 # =============================================================================
 # 📁 COPY SOURCE CODE (New Package Structure)
@@ -57,7 +48,7 @@ COPY templates/ templates/
 # 💡 WHY: Some dependencies might only be discovered after seeing all imports
 
 # Run go mod tidy again to resolve any new dependencies from source code
-RUN go mod tidy
+RUN cd cmd/builder && go mod tidy
 
 # =============================================================================
 # 🔨 BUILD THE APPLICATION
@@ -69,6 +60,9 @@ ARG VERSION=dev
 ARG BUILD_TIME
 ARG GIT_COMMIT
 
+# Change to the directory containing go.mod
+WORKDIR /build/cmd/builder
+
 # 🏗️ Build with optimizations:
 # - CGO_ENABLED=0    : Pure Go binary (no C dependencies)
 # - -a               : Force rebuilding of packages
@@ -79,7 +73,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
     -ldflags "-w -s -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME} -X main.gitCommit=${GIT_COMMIT}" \
     -o lambda-builder \
-    ./cmd/builder
+    .
 
 # 🔍 VERIFICATION: Ensure binary was created successfully
 RUN ls -la lambda-builder
@@ -115,7 +109,7 @@ RUN chown -R builder:builder /app
 # 🎯 PURPOSE: Copy only what we need for runtime (minimal attack surface)
 
 # Copy the compiled binary
-COPY --from=builder --chown=builder:builder /build/lambda-builder .
+COPY --from=builder --chown=builder:builder /build/cmd/builder/lambda-builder .
 
 # Copy templates (needed at runtime)
 COPY --from=builder --chown=builder:builder /build/templates/ templates/
