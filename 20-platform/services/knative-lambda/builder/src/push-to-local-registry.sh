@@ -18,7 +18,7 @@
 set -euo pipefail
 
 TAG=${1:-latest}
-LOCAL_REGISTRY="kind-registry:5001"
+LOCAL_REGISTRY="localhost:5001"
 
 # Function to build and push an image
 build_and_push() {

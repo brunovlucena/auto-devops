@@ -18,11 +18,11 @@ spec:
     spec:
       serviceAccountName: knative-lambda-builder
       containers:
-      - image: localhost:5000/knative-lambdas/knative-lambda-builder:latest # TODO: Locally
+      - image: localhost:5001/knative-lambdas/knative-lambda-builder:latest # TODO: Locally
         imagePullPolicy: Always
         env:
           - name: ECR_REPO_PREFIX # TODO: Remove this
-            value: "localhost:5000/knative-lambdas"
+            value: "localhost:5001/knative-lambdas"
       # tolerations:
       #   - key: knative-spot
       #     operator: Equal
