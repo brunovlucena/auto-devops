@@ -683,7 +683,7 @@ Please provide a helpful response as Jamie, incorporating the knowledge base inf
         """
         return self.model_available or self.rag_available
 
-    def get_health_status(self) -> Dict[str, Any]:
+    async def get_health_status(self) -> Dict[str, Any]:
         """
         🏥 Get comprehensive health status of all brain components
         
@@ -693,6 +693,13 @@ Please provide a helpful response as Jamie, incorporating the knowledge base inf
         - RAG system status (MongoDB, embeddings, documents)
         - Available features
         """
+        rag_status = {}
+        if self.rag_available and self.rag_memory:
+            try:
+                rag_status = await self.rag_memory.get_status()
+            except Exception as e:
+                rag_status = {"error": str(e)}
+        
         return {
             "brain_available": self.is_available(),
             "gemini_llm": {
@@ -701,7 +708,7 @@ Please provide a helpful response as Jamie, incorporating the knowledge base inf
             },
             "rag": {
                 "available": self.rag_available,
-                "status": self.rag_memory.get_status() if self.rag_available else {}
+                "status": rag_status
             },
             "features": {
                 "knowledge_base": self.rag_available,

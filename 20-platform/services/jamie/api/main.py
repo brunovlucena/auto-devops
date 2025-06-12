@@ -292,7 +292,8 @@ async def health_check():
     
     # 🔍 GET DETAILED AI BRAIN STATUS
     if ai_brain:
-        ai_status.update(ai_brain.get_health_status())
+        brain_status = await ai_brain.get_health_status()
+        ai_status.update(brain_status)
     
     return HealthCheck(
         status="healthy" if ai_status["brain_active"] else "degraded",
