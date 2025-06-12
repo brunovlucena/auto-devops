@@ -44,13 +44,19 @@ class JamieConfig:
     LOG_LEVEL: str = os.getenv("JAMIE_LOG_LEVEL", "INFO")       # How verbose logging should be
     
     # ═══════════════════════════════════════════════════════════════════════════════
-    # 🧠 AI BRAIN CONFIGURATION - Ollama LLM settings
+    # 🧠 AI BRAIN CONFIGURATION - Google Gemini LLM settings
     # ═══════════════════════════════════════════════════════════════════════════════
     
-    OLLAMA_HOST: str = os.getenv("OLLAMA_HOST", "http://localhost:11434")    # Where Ollama is running
-    JAMIE_MODEL: str = os.getenv("JAMIE_MODEL", "llama3.1:8b")              # Which LLM model to use
+    GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")                    # Google API key for Gemini
+    JAMIE_MODEL: str = os.getenv("JAMIE_MODEL", "gemini-2.0-flash")          # Which LLM model to use
     AI_TEMPERATURE: float = float(os.getenv("JAMIE_TEMPERATURE", "0.7"))     # Creativity level (0-1)
     AI_MAX_TOKENS: int = int(os.getenv("JAMIE_MAX_TOKENS", "2048"))          # Maximum response length
+    
+    # ═══════════════════════════════════════════════════════════════════════════════
+    # 🔄 LEGACY OLLAMA CONFIGURATION - Keep for backward compatibility
+    # ═══════════════════════════════════════════════════════════════════════════════
+    
+    OLLAMA_HOST: str = os.getenv("OLLAMA_HOST", "http://localhost:11434")    # Legacy Ollama host
     
     # ═══════════════════════════════════════════════════════════════════════════════
     # 🗄️ MEMORY CONFIGURATION - Where Jamie stores knowledge (legacy)

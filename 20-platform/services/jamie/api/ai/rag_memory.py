@@ -232,7 +232,7 @@ class MongoRAGMemory:
         - Set configuration limits
         """
         # 🔗 DATABASE CONNECTION
-        self.mongodb_url = mongodb_url or os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+        self.mongodb_url = mongodb_url or os.getenv("JAMIE_MONGODB_URL", os.getenv("MONGODB_URL", "mongodb://localhost:27017"))
         self.database_name = database_name
         self.client = None                # MongoDB client (set during initialization)
         self.db = None                    # Database reference

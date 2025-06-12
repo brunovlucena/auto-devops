@@ -7,8 +7,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - OLLAMA_HOST=http://ollama:11434
-      - JAMIE_MODEL=llama3.1:8b
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - JAMIE_MODEL=gemini-2.0-flash
       - JAMIE_MEMORY_DIR=/app/jamie_memory
       - JAMIE_LOG_LEVEL=INFO
       - JAMIE_LOG_FORMAT=json
@@ -16,10 +16,12 @@ services:
       - JAMIE_TRACING_ENABLED=true
       - JAMIE_TRACING_ENDPOINT=http://tempo:4317
       - JAMIE_SERVICE_NAME=jamie-devops-copilot
-      - JAMIE_MONGODB_URL=mongodb://jamie:jamie_pass@mongodb:27017/jamie_rag
+      - JAMIE_MONGODB_URL=mongodb://jamie:jamie_pass@mongodb:27017/jamie_rag?authSource=admin
       - JAMIE_REDIS_URL=redis://redis:6379
+      # Legacy Ollama support (can be removed if not needed)
+      - OLLAMA_HOST=http://ollama:11434
     depends_on:
-      - ollama
+      # - ollama  # Commented out - using Gemini instead of local Ollama
       - mongodb
       - redis
       - tempo
@@ -34,26 +36,26 @@ services:
       timeout: 10s
       retries: 3
 
-  # Ollama LLM Service
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    networks:
-      - jamie_network
-    restart: unless-stopped
-    environment:
-      - OLLAMA_ORIGINS=*
-    # Pull the model on startup
-    command: >
-      sh -c "
-        ollama serve &
-        sleep 10 &&
-        ollama pull llama3.1:8b &&
-        wait
-      "
+  # Ollama LLM Service - COMMENTED OUT (No GPU available, using Gemini instead)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   networks:
+  #     - jamie_network
+  #   restart: unless-stopped
+  #   environment:
+  #     - OLLAMA_ORIGINS=*
+  #   # Pull the model on startup
+  #   command: >
+  #     sh -c "
+  #       ollama serve &
+  #       sleep 10 &&
+  #       ollama pull llama3.1:8b &&
+  #       wait
+  #     "
 
   # Redis for session management
   redis:
@@ -135,7 +137,7 @@ services:
 
 volumes:
   jamie_memory:
-  ollama_data:
+  # ollama_data:  # Commented out - not using Ollama
   redis_data:
   mongodb_data:
   prometheus_data:

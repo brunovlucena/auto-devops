@@ -1,10 +1,10 @@
 """
 🧠 Jamie's AI Brain - Enhanced with MongoDB RAG
 
-Sprint 6: RAG-powered intelligent DevOps responses using MongoDB vector search
+Sprint 6: RAG-powered intelligent DevOps responses using Google Gemini 2.0 Flash
 
 ⭐ WHAT THIS FILE DOES:
-    - Combines Ollama LLM with MongoDB RAG knowledge base
+    - Combines Google Gemini LLM with MongoDB RAG knowledge base
     - Generates intelligent, context-aware responses
     - Learns from conversations and stores knowledge
     - Handles fallbacks when AI systems are unavailable
@@ -16,10 +16,16 @@ import json
 import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime
-import httpx
 import os
 
-from ..personality import JamiePersonality
+# LangChain imports for Gemini
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import HumanMessage, SystemMessage
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from api.personality import JamiePersonality
 from .rag_memory import MongoRAGMemory
 
 logger = logging.getLogger(__name__)
@@ -33,7 +39,7 @@ class JamieBrain:
     🤖 Jamie's Enhanced AI Brain with RAG (Retrieval-Augmented Generation)
     
     ⭐ MAIN FEATURES:
-    - Ollama LLM integration for generating responses
+    - Google Gemini 2.0 Flash LLM integration for generating responses
     - MongoDB RAG knowledge retrieval for context
     - DevOps-specific expertise and knowledge
     - Learning from every conversation
@@ -42,7 +48,7 @@ class JamieBrain:
     💡 HOW IT WORKS:
     1. User asks a question
     2. Search knowledge base for relevant information
-    3. Use Ollama LLM to generate response with context
+    3. Use Google Gemini LLM to generate response with context
     4. Add Jamie's personality to the response
     5. Store the conversation for future learning
     """
@@ -50,14 +56,15 @@ class JamieBrain:
     def __init__(self):
         """🔧 Initialize Jamie's AI brain components"""
         
-        # 🤖 OLLAMA LLM CONFIGURATION
-        self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-        self.model_name = os.getenv("JAMIE_MODEL", "llama3.1:8b")
-        self.model_available = False        # Whether Ollama is working
+        # 🤖 GOOGLE GEMINI LLM CONFIGURATION
+        self.google_api_key = os.getenv("GOOGLE_API_KEY", "")
+        self.model_name = os.getenv("JAMIE_MODEL", "gemini-2.0-flash")
+        self.model_available = False        # Whether Gemini is working
+        self.chat_model = None              # LangChain chat model instance
         
         # ⚙️ AI GENERATION SETTINGS
-        self.max_tokens = 2048             # Maximum response length
-        self.temperature = 0.7             # Creativity level (0=robotic, 1=creative)
+        self.max_tokens = int(os.getenv("JAMIE_MAX_TOKENS", "2048"))           # Maximum response length
+        self.temperature = float(os.getenv("JAMIE_TEMPERATURE", "0.7"))        # Creativity level (0=robotic, 1=creative)
         self.context_window = 4096         # How much context we can include
         
         # 🗄️ RAG MEMORY SYSTEM
@@ -149,30 +156,70 @@ STRUCTURE:
 4. Suggest next steps and related topics"""
         }
         
-        logger.info("Enhanced JamieBrain with RAG initialized")
+        logger.info("Enhanced JamieBrain with RAG and Google Gemini initialized")
 
     async def initialize(self):
         """
-        🚀 Initialize the AI brain with RAG capabilities
+        🚀 Initialize the AI brain with RAG capabilities and Google Gemini
         
         INITIALIZATION STEPS:
         1. Set up RAG memory system (MongoDB + embeddings)
-        2. Check if Ollama LLM is available
+        2. Initialize Google Gemini chat model
         3. Test connections and mark as ready
         """
         try:
             # 🗄️ STEP 1: Initialize RAG memory system
             self.rag_available = await self.rag_memory.initialize()
             
-            # 🤖 STEP 2: Check Ollama availability
-            await self._check_ollama_availability()
+            # 🤖 STEP 2: Initialize Google Gemini chat model
+            await self._initialize_gemini_model()
             
-            logger.info(f"✅ JamieBrain initialized - Ollama: {self.model_available}, RAG: {self.rag_available}")
+            logger.info(f"✅ JamieBrain initialized - Gemini: {self.model_available}, RAG: {self.rag_available}")
             return True
             
         except Exception as e:
             logger.error(f"❌ Failed to initialize JamieBrain: {str(e)}")
             return False
+
+    async def _initialize_gemini_model(self):
+        """
+        🔧 Initialize Google Gemini chat model using LangChain
+        """
+        try:
+            if not self.google_api_key:
+                logger.error("❌ Google API key not provided")
+                self.model_available = False
+                return
+                
+            # Set the API key in environment for LangChain
+            os.environ["GOOGLE_API_KEY"] = self.google_api_key
+            
+            # Initialize the chat model using LangChain's init_chat_model
+            self.chat_model = init_chat_model(
+                self.model_name, 
+                model_provider="google_genai",
+                temperature=self.temperature,
+                max_tokens=self.max_tokens
+            )
+            
+            # Test the model with a simple query
+            test_messages = [
+                SystemMessage("You are a test assistant."),
+                HumanMessage("Say 'hello' if you're working properly.")
+            ]
+            
+            response = await self.chat_model.ainvoke(test_messages)
+            
+            if response and response.content:
+                self.model_available = True
+                logger.info(f"✅ Google Gemini {self.model_name} model available")
+            else:
+                self.model_available = False
+                logger.warning(f"⚠️ Google Gemini model test failed")
+                
+        except Exception as e:
+            logger.error(f"⚠️ Failed to initialize Google Gemini: {str(e)}")
+            self.model_available = False
 
     # ═══════════════════════════════════════════════════════════════════════════════
     # 💬 MAIN RESPONSE GENERATION - The core AI functionality
@@ -188,7 +235,7 @@ STRUCTURE:
         personality: Optional[JamiePersonality] = None
     ) -> Dict[str, Any]:
         """
-        🎯 Generate RAG-enhanced response using knowledge base and LLM
+        🎯 Generate RAG-enhanced response using knowledge base and Google Gemini LLM
         
         THIS IS THE MAIN MAGIC! ✨
         
@@ -196,26 +243,29 @@ STRUCTURE:
         1. Get relevant context from RAG knowledge base
         2. Build comprehensive context (conversation + knowledge + intent)
         3. Choose appropriate system prompt based on what user wants
-        4. Generate response using Ollama LLM (or fallback if unavailable)
+        4. Generate response using Google Gemini LLM (or fallback if unavailable)
         5. Add Jamie's personality if needed
-        6. Store conversation for future learning
         
         PARAMETERS:
-        - user_message: What the user is asking
-        - conversation_history: Recent chat context
-        - intent: What type of request this is (help, troubleshoot, query)
-        - relevant_memories: Previous similar conversations
-        - devops_context: Technical context (namespace, cluster, etc.)
-        - personality: Jamie's personality system
+        - user_message: What the user asked
+        - conversation_history: Previous messages for context
+        - intent: What the user wants to accomplish (troubleshoot, learn, etc)
+        - relevant_memories: Previous interactions from memory
+        - devops_context: Current system state, metrics, alerts
+        - personality: Jamie's personality module for British responses
         
-        RETURNS: Complete response with metadata
+        RETURNS:
+        - response: Generated text response
+        - confidence: How confident we are (0.0-1.0)
+        - context_used: What information we used
+        - source: Whether response came from LLM or knowledge base
         """
         try:
-            # 🔍 STEP 1: Get RAG context for the user message
+            # ═══ STEP 1: GET RAG CONTEXT ═══
             rag_context = await self._get_rag_context(user_message, intent)
             
-            # 🏗️ STEP 2: Build comprehensive context for the AI
-            full_context = self._build_rag_context(
+            # ═══ STEP 2: BUILD COMPREHENSIVE CONTEXT ═══
+            context = self._build_rag_context(
                 user_message=user_message,
                 conversation_history=conversation_history,
                 intent=intent or {},
@@ -223,60 +273,58 @@ STRUCTURE:
                 devops_context=devops_context
             )
             
-            # 📝 STEP 3: Select appropriate system prompt based on intent
+            # ═══ STEP 3: SELECT SYSTEM PROMPT ═══
             system_prompt = self._select_system_prompt(intent)
             
-            # 🤖 STEP 4: Generate response using Ollama if available
-            if self.model_available:
-                response = await self._generate_with_ollama(
+            # ═══ STEP 4: GENERATE RESPONSE ═══
+            if self.model_available and self.chat_model:
+                # 🤖 Use Google Gemini for generation
+                response = await self._generate_with_gemini(
                     system_prompt=system_prompt,
-                    context=full_context,
+                    context=context,
                     user_message=user_message
                 )
+                source = "gemini_llm"
             else:
-                # 🔄 FALLBACK: Generate response using knowledge base only
+                # 📚 Fallback to knowledge-based response
                 response = await self._generate_knowledge_response(
-                    user_message, rag_context, intent, personality
+                    user_message=user_message,
+                    rag_context=rag_context,
+                    intent=intent,
+                    personality=personality
                 )
+                source = "knowledge_base"
             
-            # 🎭 STEP 5: Enhance with personality if needed
-            if personality:
-                response = self._enhance_personality(response, personality, intent or {})
+            # ═══ STEP 5: ENHANCE WITH PERSONALITY ═══
+            if personality and intent:
+                response = self._enhance_personality(response, personality, intent)
             
-            # 📊 STEP 6: Calculate confidence score
+            # ═══ STEP 6: CALCULATE CONFIDENCE ═══
             confidence = self._calculate_rag_confidence(intent or {}, rag_context)
             
-            # 💾 STEP 7: Store conversation for future learning
-            if self.rag_available:
-                await self.rag_memory.store_conversation(
-                    user_message=user_message,
-                    jamie_response=response,
-                    context=devops_context or {},
-                    session_id=devops_context.get("session_id", "unknown") if devops_context else "unknown",
-                    topics=intent.get("topics", []) if intent else [],
-                    intent=intent.get("primary_intent", "unknown") if intent else "unknown",
-                    confidence=confidence
-                )
-            
-            # 📋 STEP 8: Return complete response with metadata
             return {
                 "response": response,
                 "confidence": confidence,
-                "topics": intent.get("topics", []) if intent else [],
-                "intent": intent.get("primary_intent", "general") if intent else "general",
-                "rag_context_used": rag_context["documents_used"],
-                "knowledge_categories": rag_context["categories_covered"],
-                "timestamp": datetime.now().isoformat()
+                "context_used": {
+                    "rag_documents": rag_context["documents_used"],
+                    "categories": rag_context["categories_covered"],
+                    "conversation_context": bool(conversation_history),
+                    "devops_context": bool(devops_context)
+                },
+                "source": source,
+                "model": self.model_name if source == "gemini_llm" else "knowledge_base"
             }
             
         except Exception as e:
-            logger.error(f"Error generating RAG response: {str(e)}")
+            logger.error(f"Error generating response: {str(e)}")
+            fallback_response = "Blimey! I'm having a spot of trouble with my AI brain. Let me try a simpler approach - what specific DevOps issue can I help you with?"
+            
             return {
-                "response": "Blimey! I'm having a bit of trouble accessing my knowledge right now. Give me a tick to sort this out!",
-                "confidence": 0.3,
-                "topics": [],
-                "intent": "error",
-                "timestamp": datetime.now().isoformat()
+                "response": fallback_response,
+                "confidence": 0.1,
+                "context_used": {},
+                "source": "error_fallback",
+                "model": "none"
             }
 
     # ═══════════════════════════════════════════════════════════════════════════════
@@ -401,18 +449,18 @@ STRUCTURE:
     # 🤖 OLLAMA LLM INTEGRATION - Generate responses using AI
     # ═══════════════════════════════════════════════════════════════════════════════
 
-    async def _generate_with_ollama(
+    async def _generate_with_gemini(
         self,
         system_prompt: str,
         context: str,
         user_message: str
     ) -> str:
         """
-        🤖 Generate response using Ollama with RAG context
+        🤖 Generate response using Google Gemini with RAG context
         
         PROCESS:
         1. Build complete prompt with system instructions + context + user message
-        2. Send to Ollama API for generation
+        2. Send to Google Gemini API for generation
         3. Get response back with Jamie's personality and knowledge
         
         PARAMETERS:
@@ -430,30 +478,20 @@ USER MESSAGE: {user_message}
 
 Please provide a helpful response as Jamie, incorporating the knowledge base information where relevant. Be specific and actionable while maintaining Jamie's British personality."""
 
-            # 🌐 SEND REQUEST TO OLLAMA
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.ollama_host}/api/generate",
-                    json={
-                        "model": self.model_name,
-                        "prompt": full_prompt,
-                        "stream": False,              # Get complete response at once
-                        "options": {
-                            "temperature": self.temperature,
-                            "num_predict": self.max_tokens
-                        }
-                    }
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    return result.get("response", "Sorry mate, couldn't generate a response!")
-                else:
-                    logger.error(f"Ollama error: {response.status_code}")
-                    return "Having a spot of bother with my AI brain, mate!"
+            # 🌐 SEND REQUEST TO GOOGLE GEMINI
+            response = await self.chat_model.ainvoke([
+                SystemMessage(system_prompt),
+                HumanMessage(full_prompt)
+            ])
+            
+            if response and response.content:
+                return response.content
+            else:
+                logger.error("Google Gemini error: No response received")
+                return "Sorry mate, couldn't generate a response!"
                     
         except Exception as e:
-            logger.error(f"Error with Ollama generation: {str(e)}")
+            logger.error(f"Error with Google Gemini generation: {str(e)}")
             return "Blimey! My AI's gone a bit wonky. Let me try a different approach..."
 
     # ═══════════════════════════════════════════════════════════════════════════════
@@ -468,7 +506,7 @@ Please provide a helpful response as Jamie, incorporating the knowledge base inf
         personality: Optional[JamiePersonality]
     ) -> str:
         """
-        📚 Generate response using knowledge base when Ollama is unavailable
+        📚 Generate response using knowledge base when Google Gemini is unavailable
         
         FALLBACK STRATEGY:
         1. If we have RAG context, use it to create a helpful response
@@ -635,47 +673,12 @@ Please provide a helpful response as Jamie, incorporating the knowledge base inf
     # 🔌 OLLAMA CONNECTION MANAGEMENT - Check if AI is available
     # ═══════════════════════════════════════════════════════════════════════════════
 
-    async def _check_ollama_availability(self):
-        """
-        🔍 Check if Ollama is available and working
-        
-        CONNECTION TEST:
-        1. Try to connect to Ollama API
-        2. Get list of available models
-        3. Check if our preferred model is available
-        4. Set availability flag
-        """
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(f"{self.ollama_host}/api/tags")
-                if response.status_code == 200:
-                    tags = response.json()
-                    models = [model["name"] for model in tags.get("models", [])]
-                    
-                    if self.model_name in models:
-                        self.model_available = True
-                        logger.info(f"✅ Ollama model {self.model_name} available")
-                    else:
-                        logger.warning(f"⚠️ Model {self.model_name} not found in Ollama")
-                        self.model_available = False
-                else:
-                    logger.warning(f"⚠️ Ollama API returned {response.status_code}")
-                    self.model_available = False
-                    
-        except Exception as e:
-            logger.warning(f"⚠️ Failed to connect to Ollama: {str(e)}")
-            self.model_available = False
-
-    # ═══════════════════════════════════════════════════════════════════════════════
-    # 📊 STATUS AND MANAGEMENT - Monitor brain health and manage knowledge
-    # ═══════════════════════════════════════════════════════════════════════════════
-
     def is_available(self) -> bool:
         """
-        ✅ Check if AI brain is available (either Ollama or RAG)
+        ✅ Check if AI brain is available (either Google Gemini or RAG)
         
         AVAILABILITY LOGIC:
-        - Brain is available if EITHER Ollama OR RAG is working
+        - Brain is available if EITHER Google Gemini OR RAG is working
         - This ensures Jamie can always help in some capacity
         """
         return self.model_available or self.rag_available
@@ -686,15 +689,14 @@ Please provide a helpful response as Jamie, incorporating the knowledge base inf
         
         HEALTH CHECK INCLUDES:
         - Overall brain availability
-        - Ollama LLM status (host, model, availability)
+        - Google Gemini LLM status (model, availability)
         - RAG system status (MongoDB, embeddings, documents)
         - Available features
         """
         return {
             "brain_available": self.is_available(),
-            "ollama": {
+            "gemini_llm": {
                 "available": self.model_available,
-                "host": self.ollama_host,
                 "model": self.model_name
             },
             "rag": {
@@ -810,7 +812,7 @@ if __name__ == "__main__":
         
         print(f"Response: {response['response'][:100]}...")
         print(f"Confidence: {response['confidence']}")
-        print(f"RAG docs used: {response['rag_context_used']}")
+        print(f"RAG docs used: {response['context_used']['rag_documents']}")
         
         # 🔐 STEP 4: Clean up
         await brain.close()

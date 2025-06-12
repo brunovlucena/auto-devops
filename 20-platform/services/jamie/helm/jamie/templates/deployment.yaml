@@ -49,12 +49,18 @@ spec:
               value: "{{ .Values.jamie.config.debug }}"
             
             # AI configuration
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jamie-secrets
+                  key: google-api-key
             - name: JAMIE_MODEL
               value: "{{ .Values.jamie.config.ai.model }}"
             - name: JAMIE_TEMPERATURE
               value: "{{ .Values.jamie.config.ai.temperature }}"
             - name: JAMIE_MAX_TOKENS
               value: "{{ .Values.jamie.config.ai.maxTokens }}"
+            # Legacy Ollama support
             - name: OLLAMA_HOST
               value: {{ include "jamie.ollama.url" . | quote }}
             

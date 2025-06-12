@@ -45,8 +45,12 @@ from opentelemetry.sdk.resources import Resource
 from loguru import logger
 import colorlog
 import structlog
+from fastapi import Response
 
-from ..config import config
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import config
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🌍 GLOBAL CONTEXT AND STATE
@@ -373,17 +377,7 @@ class JamieLogger:
     
     def _get_json_format(self):
         """Get JSON format string for structured logging"""
-        return json.dumps({
-            "timestamp": "{time:YYYY-MM-DD HH:mm:ss.SSS}",
-            "level": "{level}",
-            "logger": "{name}",
-            "function": "{function}",
-            "line": "{line}",
-            "message": "{message}",
-            "correlation_id": "{extra[correlation_id]}",
-            "trace_id": "{extra[trace_id]}",
-            "span_id": "{extra[span_id]}"
-        })
+        return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level} | {name}:{function}:{line} | {message} | correlation_id={extra[correlation_id]} | trace_id={extra[trace_id]} | span_id={extra[span_id]}"
     
     def _add_correlation_id(self, record):
         """Add correlation ID and tracing info to log records"""
@@ -491,10 +485,13 @@ def measure_time(metric_name: str, labels: Dict[str, str] = None):
                 # Find the appropriate metric
                 metric = getattr(jamie_metrics, metric_name, None)
                 if metric and hasattr(metric, 'observe'):
-                    if labels:
-                        metric.labels(**labels).observe(duration)
-                    else:
-                        metric.observe(duration)
+                    try:
+                        if labels:
+                            metric.labels(**labels).observe(duration)
+                        else:
+                            metric.observe(duration)
+                    except ValueError as e:
+                        logger.warning(f"Metric {metric_name} label error: {e} - labels: {labels}")
                 
                 return result
             except Exception as e:
@@ -512,10 +509,13 @@ def measure_time(metric_name: str, labels: Dict[str, str] = None):
                 
                 metric = getattr(jamie_metrics, metric_name, None)
                 if metric and hasattr(metric, 'observe'):
-                    if labels:
-                        metric.labels(**labels).observe(duration)
-                    else:
-                        metric.observe(duration)
+                    try:
+                        if labels:
+                            metric.labels(**labels).observe(duration)
+                        else:
+                            metric.observe(duration)
+                    except ValueError as e:
+                        logger.warning(f"Metric {metric_name} label error: {e} - labels: {labels}")
                 
                 return result
             except Exception as e:
@@ -549,9 +549,7 @@ def initialize_observability():
         jamie_tracing.initialize()
     
     # 📊 Metrics are already initialized via global instance
-    logger.info("✅ Jamie observability initialized successfully",
-               tracing_enabled=config.TRACING_ENABLED,
-               metrics_enabled=config.METRICS_ENABLED)
+    logger.info(f"✅ Jamie observability initialized successfully [tracing_enabled: {config.TRACING_ENABLED}, metrics_enabled: {config.METRICS_ENABLED}]")
 
 def setup_fastapi_observability(app):
     """
@@ -561,15 +559,16 @@ def setup_fastapi_observability(app):
         app: FastAPI application instance
     """
     if config.METRICS_ENABLED:
-        # 📊 Set up Prometheus metrics endpoint
+        # 📊 Expose metrics endpoint for already instrumented app
+        from prometheus_fastapi_instrumentator import Instrumentator
         instrumentator = Instrumentator()
-        instrumentator.instrument(app).expose(app, endpoint=config.METRICS_PATH)
+        instrumentator.expose(app, endpoint=config.METRICS_PATH)
         
         logger.info(f"📊 Metrics endpoint available at {config.METRICS_PATH}")
     
     if config.TRACING_ENABLED:
-        # 🔍 Instrument FastAPI for tracing
-        jamie_tracing.instrument_fastapi(app)
+        # 🔍 Initialize tracing but don't instrument (middleware conflict)
+        logger.info("🔍 Tracing is enabled but not instrumenting FastAPI to avoid middleware conflicts")
 
 def get_correlation_id() -> str:
     """Get current correlation ID"""

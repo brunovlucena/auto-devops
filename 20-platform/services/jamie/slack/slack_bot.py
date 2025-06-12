@@ -37,8 +37,11 @@ from slack_sdk.errors import SlackApiError                   # Error handling
 
 # ===== JAMIE'S BRAIN IMPORTS =====
 # These connect to Jamie's AI and DevOps knowledge
-from ..api.jamie_brain import JamieBrain     # Jamie's AI intelligence
-from ..api.mcp_client import MCPClient       # DevOps data (Kubernetes, Prometheus, etc.)
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from api.jamie_brain import JamieBrain     # Jamie's AI intelligence
+from api.mcp_client import MCPClient       # DevOps data (Kubernetes, Prometheus, etc.)
 
 # ===== SLACK HELPERS =====
 # These make Slack messages beautiful and smart

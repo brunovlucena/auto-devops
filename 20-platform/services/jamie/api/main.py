@@ -43,13 +43,19 @@ from .observability import (
 )
 from loguru import logger
 
+# Import config for observability setup
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import config
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🔧 SETUP AND CONFIGURATION - Basic app initialization
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Configure logging for debugging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Note: Using loguru logger imported above, not standard logging
 
 # 🚀 Initialize FastAPI app with metadata
 app = FastAPI(
@@ -153,6 +159,16 @@ manager = ConnectionManager()
 # 🚀 STARTUP AND SHUTDOWN - Initialize and cleanup systems
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🔧 MIDDLEWARE SETUP - Must be done before startup
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Initialize observability middleware (must be done before startup)
+if config.METRICS_ENABLED:
+    from prometheus_fastapi_instrumentator import Instrumentator
+    instrumentator = Instrumentator()
+    instrumentator.instrument(app)
+
 @app.on_event("startup")
 async def startup_event():
     """
@@ -171,14 +187,12 @@ async def startup_event():
     initialize_observability()
     setup_fastapi_observability(app)
     
-    logger.info("🚀 Starting Jamie AI DevOps Copilot...", 
-               correlation_id=get_correlation_id())
+    logger.info(f"🚀 Starting Jamie AI DevOps Copilot... [correlation_id: {get_correlation_id()}]")
     
     # 🧠 STEP 2: Initialize AI brain with RAG capabilities
     brain_initialized = await ai_brain.initialize()
     if brain_initialized:
-        logger.info("✅ Jamie's enhanced AI brain is ready!",
-                   ai_model=ai_brain.model_name)
+        logger.info(f"✅ Jamie's enhanced AI brain is ready! [ai_model: {ai_brain.model_name}]")
         # Set the rag_memory reference for backward compatibility
         rag_memory = ai_brain.rag_memory
         
@@ -191,9 +205,7 @@ async def startup_event():
     # 📊 Track startup completion
     jamie_metrics.system_health.labels(component="api_server").set(1.0)
     
-    logger.info("🤖 Jamie is ready to help with your DevOps challenges!",
-               observability_enabled=True,
-               ai_available=brain_initialized)
+    logger.info(f"🤖 Jamie is ready to help with your DevOps challenges! [observability_enabled: True, ai_available: {brain_initialized}]")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -295,7 +307,7 @@ async def health_check():
 
 @app.post("/chat", response_model=ChatResponse)
 @trace_endpoint("chat_endpoint")
-@measure_time("http_request_duration", {"endpoint": "chat"})
+@measure_time("http_request_duration", {"method": "POST", "endpoint": "chat"})
 async def chat_endpoint(chat_message: ChatMessage):
     """
     💬 Enhanced chat endpoint with AI brain integration
@@ -378,10 +390,7 @@ async def chat_endpoint(chat_message: ChatMessage):
         )
         
     except Exception as e:
-        logger.error("Error processing chat message", 
-                    error=str(e),
-                    user_id=chat_message.user_id,
-                    correlation_id=get_correlation_id())
+        logger.error(f"Error processing chat message [error: {str(e)}, user_id: {chat_message.user_id}, correlation_id: {get_correlation_id()}]")
         
         jamie_metrics.errors_total.labels(
             component="chat_endpoint",
@@ -456,7 +465,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @trace_endpoint("ai_response_generation")
-@measure_time("ai_response_time", {"model": "llama3.1", "operation": "chat"})
+@measure_time("ai_response_time", {"model": "gemini-2.0-flash", "operation": "chat"})
 async def generate_ai_response(message: str, user_id: str, session_id: str, context: Optional[Dict] = None) -> Dict[str, Any]:
     """
     🎯 Generate Jamie's RAG-enhanced AI response
@@ -470,15 +479,11 @@ async def generate_ai_response(message: str, user_id: str, session_id: str, cont
     RETURNS: Complete response with confidence and metadata
     """
     try:
-        logger.info("Generating AI response",
-                   message_length=len(message),
-                   user_id=user_id,
-                   session_id=session_id,
-                   correlation_id=get_correlation_id())
+        logger.info(f"Generating AI response [message_length: {len(message)}, user_id: {user_id}, session_id: {session_id}, correlation_id: {get_correlation_id()}]")
         
         # 📊 Track AI request metrics
         jamie_metrics.ai_requests_total.labels(
-            model="llama3.1",
+            model="gemini-2.0-flash",
             operation="chat",
             status="started"
         ).inc()
@@ -502,7 +507,7 @@ async def generate_ai_response(message: str, user_id: str, session_id: str, cont
             
             # 📊 Track successful AI operation
             jamie_metrics.ai_requests_total.labels(
-                model="llama3.1",
+                model="gemini-2.0-flash",
                 operation="chat", 
                 status="success"
             ).inc()
@@ -518,23 +523,16 @@ async def generate_ai_response(message: str, user_id: str, session_id: str, cont
                 status="fallback"
             ).inc()
         
-        logger.info("AI response generated successfully",
-                   response_length=len(response_data.get("response", "")),
-                   confidence=response_data.get("confidence"),
-                   intent=response_data.get("intent"))
+        logger.info(f"AI response generated successfully [response_length: {len(response_data.get('response', ''))}, confidence: {response_data.get('confidence')}, intent: {response_data.get('intent')}]")
         
         return response_data
         
     except Exception as e:
-        logger.error("Error generating AI response",
-                    error=str(e),
-                    user_id=user_id,
-                    session_id=session_id,
-                    correlation_id=get_correlation_id())
+        logger.error(f"Error generating AI response [error: {str(e)}, user_id: {user_id}, session_id: {session_id}, correlation_id: {get_correlation_id()}]")
         
         # 📊 Track AI errors
         jamie_metrics.ai_requests_total.labels(
-            model="llama3.1",
+            model="gemini-2.0-flash",
             operation="chat",
             status="error"
         ).inc()
@@ -646,7 +644,7 @@ async def ai_status():
     - Personality system information
     """
     try:
-        logger.info("AI status check requested", correlation_id=get_correlation_id())
+        logger.info(f"AI status check requested [correlation_id: {get_correlation_id()}]")
         
         # 🧠 GET BRAIN STATUS
         brain_status = ai_brain.get_health_status() if ai_brain else {"available": False}
@@ -676,11 +674,11 @@ async def ai_status():
             }
         }
         
-        logger.info("AI status check completed", ai_available=brain_status.get("available", False))
+        logger.info(f"AI status check completed [ai_available: {brain_status.get('available', False)}]")
         return status_response
         
     except Exception as e:
-        logger.error("Error getting AI status", error=str(e))
+        logger.error(f"Error getting AI status [error: {str(e)}]")
         jamie_metrics.errors_total.labels(
             component="ai_status",
             error_type=type(e).__name__,
@@ -1005,7 +1003,6 @@ async def observability_status():
     - System health scores
     """
     try:
-        from ..config import config
         
         # Get current system health metrics
         health_scores = {}
@@ -1040,7 +1037,7 @@ async def observability_status():
         }
         
     except Exception as e:
-        logger.error("Error getting observability status", error=str(e))
+        logger.error(f"Error getting observability status [error: {str(e)}]")
         raise HTTPException(status_code=500, detail=f"Error getting observability status: {str(e)}")
 
 @app.get("/observability/metrics/summary")
@@ -1079,7 +1076,7 @@ async def metrics_summary():
         }
         
     except Exception as e:
-        logger.error("Error getting metrics summary", error=str(e))
+        logger.error(f"Error getting metrics summary [error: {str(e)}]")
         raise HTTPException(status_code=500, detail=f"Error getting metrics summary: {str(e)}")
 
 # ═══════════════════════════════════════════════════════════════════════════════
