@@ -5,7 +5,6 @@
 **Auto-DevOps** is our comprehensive consulting solution that transforms your infrastructure operations with intelligent AI agents. We implement and customize a complete system featuring:
 
 - **Jamie** 🤖: Intelligent DevOps assistant for your team
-- **Scarlet** 🔴: Autonomous infrastructure guardian
 
 *Ready to reduce operational overhead by 70% while improving system reliability?*
 
@@ -30,15 +29,6 @@
 - Eliminates documentation hunting and guesswork
 
 ---
-
-## 🚀 **Get Started Today**
-
-### **Free Assessment** *(No Obligation)*
-
-1. **Infrastructure Audit**: 2-hour deep dive into your current setup
-2. **ROI Analysis**: Custom projection based on your metrics
-3. **Implementation Roadmap**: Tailored plan for your organization
-4. **Proof of Concept**: Optional 2-week pilot program
 
 ### **Contact Information**
 
