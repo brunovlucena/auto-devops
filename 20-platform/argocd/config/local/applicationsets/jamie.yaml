@@ -26,7 +26,7 @@ spec:
       - CreateNamespace=false
   source:
     repoURL: git@github.com:brunovlucena/auto-devops.git
-    path: 20-platform/services/jamie/helm/jamie
+    path: 20-platform/services/jamie/deploy
     targetRevision: HEAD
     helm:
       releaseName: jamie
